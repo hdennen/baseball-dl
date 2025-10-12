@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme } from '@mui/material';
+import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip } from '@mui/material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import PlayerManagement from './components/PlayerManagement';
 import BaseballField from './components/BaseballField';
@@ -21,7 +21,7 @@ const theme = createTheme({
 function App() {
   const [currentView, setCurrentView] = useState(0);
   const [activeId, setActiveId] = useState(null);
-  const { assignPosition } = useBaseballStore();
+  const { assignPosition, players } = useBaseballStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -123,6 +123,19 @@ function App() {
             <InningsSummary />
           )}
         </Container>
+        <DragOverlay>
+          {activeId ? (
+            <Chip
+              label={players.find(p => p.id === activeId)?.name || ''}
+              color="primary"
+              size="small"
+              sx={{
+                cursor: 'grabbing',
+                boxShadow: 3,
+              }}
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </ThemeProvider>
   );

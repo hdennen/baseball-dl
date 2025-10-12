@@ -16,7 +16,7 @@ function DraggablePlayer({ player, position }) {
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   return (
@@ -88,7 +88,7 @@ function BenchPlayer({ player, index }) {
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   return (
@@ -99,8 +99,6 @@ function BenchPlayer({ player, index }) {
         variant="outlined"
         size="medium"
         sx={{
-          width: '100%',
-          justifyContent: 'flex-start',
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
       />
