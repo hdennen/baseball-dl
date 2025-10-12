@@ -1,7 +1,6 @@
-import { Box, Paper, Typography, Chip, Grid } from '@mui/material';
+import { Box, Paper, Typography, Chip } from '@mui/material';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
 import useBaseballStore from '../store/useBaseballStore';
-import { POSITIONS } from '../store/useBaseballStore';
 
 function PositionSlot({ position, player, index }) {
   const { getPositionLabel } = useBaseballStore();
@@ -82,110 +81,153 @@ function BaseballField() {
       </Typography>
       
       <Box sx={{ display: 'flex', gap: 3, maxWidth: 1400, mx: 'auto' }}>
-        {/* Field Positions - Left Side */}
-        <Box sx={{ flex: 1 }}>
-          {/* Outfield */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" gutterBottom color="primary">
-              Outfield
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={2.4}>
-                <PositionSlot
-                  position="left-field"
-                  player={getPlayerForPosition('left-field')}
-                  index={6}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
-                <PositionSlot
-                  position="center-left-field"
-                  player={getPlayerForPosition('center-left-field')}
-                  index={7}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
-                <PositionSlot
-                  position="center-field"
-                  player={getPlayerForPosition('center-field')}
-                  index={8}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
-                <PositionSlot
-                  position="center-right-field"
-                  player={getPlayerForPosition('center-right-field')}
-                  index={9}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
-                <PositionSlot
-                  position="right-field"
-                  player={getPlayerForPosition('right-field')}
-                  index={10}
-                />
-              </Grid>
-            </Grid>
-          </Box>
+        {/* Baseball Field with Positioned Slots */}
+        <Box sx={{ flex: 1, position: 'relative', minHeight: 700 }}>
+          {/* Baseball Diamond Background */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: 400,
+              height: 400,
+              transform: 'translate(-50%, -40%) rotate(45deg)',
+              border: '3px solid black',
+              zIndex: 0,
+            }}
+          />
 
-          {/* Infield */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" gutterBottom color="primary">
-              Infield
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={3}>
-                <PositionSlot
-                  position="third-base"
-                  player={getPlayerForPosition('third-base')}
-                  index={5}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <PositionSlot
-                  position="shortstop"
-                  player={getPlayerForPosition('shortstop')}
-                  index={4}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <PositionSlot
-                  position="second-base"
-                  player={getPlayerForPosition('second-base')}
-                  index={3}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <PositionSlot
-                  position="first-base"
-                  player={getPlayerForPosition('first-base')}
-                  index={2}
-                />
-              </Grid>
-            </Grid>
-          </Box>
+          {/* Foul lines */}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: '10%',
+              left: '50%',
+              width: '45%',
+              height: '2px',
+              bgcolor: 'black',
+              transform: 'rotate(-45deg)',
+              transformOrigin: 'left center',
+              zIndex: 0,
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: '10%',
+              right: '50%',
+              width: '45%',
+              height: '2px',
+              bgcolor: 'black',
+              transform: 'rotate(45deg)',
+              transformOrigin: 'right center',
+              zIndex: 0,
+            }}
+          />
 
-          {/* Battery */}
-          <Box>
-            <Typography variant="h6" gutterBottom color="primary">
-              Battery
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <PositionSlot
-                  position="pitcher"
-                  player={getPlayerForPosition('pitcher')}
-                  index={0}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <PositionSlot
-                  position="catcher"
-                  player={getPlayerForPosition('catcher')}
-                  index={1}
-                />
-              </Grid>
-            </Grid>
+          {/* Outfield Arc */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '8%',
+              left: '50%',
+              width: 600,
+              height: 300,
+              transform: 'translateX(-50%)',
+              borderTop: '2px solid black',
+              borderRadius: '300px 300px 0 0',
+              zIndex: 0,
+            }}
+          />
+
+          {/* Position Slots - Absolutely positioned */}
+          <Box sx={{ position: 'relative', zIndex: 1, height: 700 }}>
+            {/* Outfield */}
+            <Box sx={{ position: 'absolute', left: '8%', top: '15%' }}>
+              <PositionSlot
+                position="left-field"
+                player={getPlayerForPosition('left-field')}
+                index={6}
+              />
+            </Box>
+            <Box sx={{ position: 'absolute', left: '25%', top: '8%' }}>
+              <PositionSlot
+                position="center-left-field"
+                player={getPlayerForPosition('center-left-field')}
+                index={7}
+              />
+            </Box>
+            <Box sx={{ position: 'absolute', left: '50%', top: '5%', transform: 'translateX(-50%)' }}>
+              <PositionSlot
+                position="center-field"
+                player={getPlayerForPosition('center-field')}
+                index={8}
+              />
+            </Box>
+            <Box sx={{ position: 'absolute', right: '25%', top: '8%' }}>
+              <PositionSlot
+                position="center-right-field"
+                player={getPlayerForPosition('center-right-field')}
+                index={9}
+              />
+            </Box>
+            <Box sx={{ position: 'absolute', right: '8%', top: '15%' }}>
+              <PositionSlot
+                position="right-field"
+                player={getPlayerForPosition('right-field')}
+                index={10}
+              />
+            </Box>
+
+            {/* Infield - Left side (3B-SS line) */}
+            <Box sx={{ position: 'absolute', left: '15%', top: '48%' }}>
+              <PositionSlot
+                position="third-base"
+                player={getPlayerForPosition('third-base')}
+                index={5}
+              />
+            </Box>
+            <Box sx={{ position: 'absolute', left: '32%', top: '38%' }}>
+              <PositionSlot
+                position="shortstop"
+                player={getPlayerForPosition('shortstop')}
+                index={4}
+              />
+            </Box>
+
+            {/* Infield - Right side (2B-1B line) */}
+            <Box sx={{ position: 'absolute', right: '32%', top: '38%' }}>
+              <PositionSlot
+                position="second-base"
+                player={getPlayerForPosition('second-base')}
+                index={3}
+              />
+            </Box>
+            <Box sx={{ position: 'absolute', right: '15%', top: '48%' }}>
+              <PositionSlot
+                position="first-base"
+                player={getPlayerForPosition('first-base')}
+                index={2}
+              />
+            </Box>
+
+            {/* Pitcher - Center */}
+            <Box sx={{ position: 'absolute', left: '50%', top: '48%', transform: 'translateX(-50%)' }}>
+              <PositionSlot
+                position="pitcher"
+                player={getPlayerForPosition('pitcher')}
+                index={0}
+              />
+            </Box>
+
+            {/* Catcher - Home */}
+            <Box sx={{ position: 'absolute', left: '50%', bottom: '5%', transform: 'translateX(-50%)' }}>
+              <PositionSlot
+                position="catcher"
+                player={getPlayerForPosition('catcher')}
+                index={1}
+              />
+            </Box>
           </Box>
         </Box>
 
