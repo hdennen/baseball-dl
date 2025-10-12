@@ -1,4 +1,5 @@
-import { Box, Paper, Typography, Chip } from '@mui/material';
+import { Box, Paper, Typography, Chip, Button } from '@mui/material';
+import { Shuffle as ShuffleIcon } from '@mui/icons-material';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
 import useBaseballStore from '../store/useBaseballStore';
 
@@ -63,7 +64,7 @@ function PositionSlot({ position, player, index }) {
 }
 
 function BaseballField() {
-  const { innings, currentInningIndex, players, getBenchedPlayers } = useBaseballStore();
+  const { innings, currentInningIndex, players, getBenchedPlayers, randomlyAssignPlayers } = useBaseballStore();
   
   const currentInning = innings[currentInningIndex] || { positions: {} };
   const benchedPlayers = getBenchedPlayers(currentInningIndex);
@@ -76,9 +77,20 @@ function BaseballField() {
 
   return (
     <Paper elevation={2} sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom align="center">
-        Inning {currentInningIndex + 1} - Field Positions
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h5">
+          Inning {currentInningIndex + 1} - Field Positions
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<ShuffleIcon />}
+          onClick={randomlyAssignPlayers}
+          disabled={players.length === 0}
+          size="small"
+        >
+          Random Positions
+        </Button>
+      </Box>
       
       <Box sx={{ display: 'flex', gap: 3, maxWidth: 1400, mx: 'auto' }}>
         {/* Baseball Field with Positioned Slots */}

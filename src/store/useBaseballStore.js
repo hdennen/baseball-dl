@@ -151,6 +151,27 @@ const useBaseballStore = create((set, get) => ({
     });
   },
   
+  // Randomly assign players to positions in the current inning
+  randomlyAssignPlayers: () => {
+    set((state) => {
+      if (state.players.length === 0) return state;
+      
+      const newInnings = [...state.innings];
+      const shuffledPlayers = [...state.players].sort(() => Math.random() - 0.5);
+      
+      const newPositions = {};
+      POSITIONS.forEach((position, index) => {
+        if (index < shuffledPlayers.length) {
+          newPositions[position] = shuffledPlayers[index].id;
+        }
+      });
+      
+      newInnings[state.currentInningIndex] = { positions: newPositions };
+      
+      return { innings: newInnings };
+    });
+  },
+
   // Get benched players for a specific inning
   getBenchedPlayers: (inningIndex) => {
     const state = get();
