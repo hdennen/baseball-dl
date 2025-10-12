@@ -57,8 +57,19 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <DragDropContext onDragEnd={handleDragEnd}>
-        <Container maxWidth="xl" sx={{ py: 4 }}>
-          <Box sx={{ mb: 4 }}>
+        <Container 
+          maxWidth="xl" 
+          sx={{ 
+            py: 4,
+            '@media print': {
+              '& .no-print': { display: 'none !important' },
+              p: 0,
+              m: 0,
+              maxWidth: '100%',
+            },
+          }}
+        >
+          <Box className="no-print" sx={{ mb: 4 }}>
             <Typography variant="h3" component="h1" gutterBottom align="center">
               ⚾ Baseball Defensive Lineup Manager
             </Typography>
@@ -68,6 +79,7 @@ function App() {
           </Box>
 
           <Tabs 
+            className="no-print"
             value={currentView} 
             onChange={(e, newValue) => setCurrentView(newValue)}
             centered

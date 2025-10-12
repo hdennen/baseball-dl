@@ -86,7 +86,15 @@ function InningsSummary() {
   );
 
   return (
-    <Box sx={{ '@media print': { '& .no-print': { display: 'none' } } }}>
+    <Box 
+      sx={{ 
+        '@media print': { 
+          '& .no-print': { display: 'none' },
+          margin: 0,
+          padding: 0,
+        } 
+      }}
+    >
       <Box className="no-print" sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h4">
           Field Positions by Inning
@@ -108,7 +116,9 @@ function InningsSummary() {
           mx: 'auto',
           '@media print': {
             boxShadow: 'none',
-            p: 2,
+            p: 0,
+            m: 0,
+            maxWidth: '100%',
           },
         }}
       >
@@ -122,6 +132,11 @@ function InningsSummary() {
             bgcolor: '#f5f5f5',
             borderRadius: 2,
             p: 2,
+            '@media print': {
+              mb: 2,
+              p: 1,
+              pageBreakAfter: 'avoid',
+            },
           }}
         >
           {/* Baseball Diamond Background */}
@@ -237,7 +252,15 @@ function InningsSummary() {
         </Box>
 
         {/* Bench */}
-        <Box sx={{ mb: 3 }}>
+        <Box 
+          sx={{ 
+            mb: 3,
+            '@media print': {
+              mb: 2,
+              pageBreakInside: 'avoid',
+            },
+          }}
+        >
           <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
             BENCH
           </Typography>
@@ -273,7 +296,17 @@ function InningsSummary() {
         </Box>
 
         {/* Result Section */}
-        <Box sx={{ display: 'flex', gap: 4, mt: 4 }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            gap: 4, 
+            mt: 4,
+            '@media print': {
+              mt: 2,
+              pageBreakInside: 'avoid',
+            },
+          }}
+        >
           <Box sx={{ flex: 1 }}>
             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
               Opponent: ___________________________
