@@ -92,9 +92,9 @@ function BaseballField() {
         </Button>
       </Box>
       
-      <Box sx={{ display: 'flex', gap: 3, maxWidth: 1400, mx: 'auto' }}>
+      <Box sx={{ display: 'flex', gap: 3, maxWidth: 1400, mx: 'auto', alignItems: 'flex-start' }}>
         {/* Baseball Field with Positioned Slots */}
-        <Box sx={{ flex: 1, position: 'relative', minHeight: 700 }}>
+        <Box sx={{ flex: 1, position: 'relative', height: 700 }}>
           {/* Baseball Diamond Background */}
           <Box
             sx={{
@@ -153,7 +153,7 @@ function BaseballField() {
           />
 
           {/* Position Slots - Absolutely positioned */}
-          <Box sx={{ position: 'relative', zIndex: 1, height: 700 }}>
+          <Box sx={{ position: 'relative', zIndex: 1, height: '100%' }}>
             {/* Outfield */}
             <Box sx={{ position: 'absolute', left: '8%', top: '15%' }}>
               <PositionSlot
@@ -259,8 +259,9 @@ function BaseballField() {
                 variant="outlined"
                 sx={{
                   p: 2,
-                  minHeight: 400,
-                  height: '100%',
+                  height: 700,
+                  maxHeight: 700,
+                  overflowY: 'auto',
                   bgcolor: snapshot.isDraggingOver ? 'warning.50' : 'grey.50',
                   border: '2px solid',
                   borderColor: snapshot.isDraggingOver ? 'warning.main' : 'grey.300',
