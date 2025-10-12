@@ -6,10 +6,9 @@ import {
   ButtonGroup,
   Chip,
   Stack,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
-import { Add as AddIcon, ContentCopy as CopyIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Add as AddIcon, ContentCopy as CopyIcon, DragIndicator as DragIcon } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import useBaseballStore from '../store/useBaseballStore';
 
 function InningManager() {
@@ -20,11 +19,24 @@ function InningManager() {
     addEmptyInning,
     addInningWithCarryOver,
     removeInning,
+    reorderInnings,
   } = useBaseballStore();
 
   const handleDeleteInning = (index, event) => {
     event.stopPropagation(); // Prevent the chip click event from firing
     removeInning(index);
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) {
+      return;
+    }
+
+    if (result.source.index === result.destination.index) {
+      return;
+    }
+
+    reorderInnings(result.source.index, result.destination.index);
   };
 
   return (
@@ -50,19 +62,64 @@ function InningManager() {
         </ButtonGroup>
       </Box>
 
-      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-        {innings.map((inning, index) => (
-          <Chip
-            key={index}
-            label={`Inning ${index + 1}`}
-            onClick={() => setCurrentInning(index)}
-            onDelete={innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
-            color={currentInningIndex === index ? 'primary' : 'default'}
-            variant={currentInningIndex === index ? 'filled' : 'outlined'}
-            sx={{ minWidth: 100 }}
-          />
-        ))}
-      </Stack>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="innings" direction="horizontal">
+          {(provided, snapshot) => (
+            <Stack
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              direction="row"
+              spacing={1}
+              flexWrap="wrap"
+              useFlexGap
+              sx={{
+                bgcolor: snapshot.isDraggingOver ? 'action.hover' : 'transparent',
+                p: 1,
+                borderRadius: 1,
+                transition: 'background-color 0.2s',
+              }}
+            >
+              {innings.map((inning, index) => (
+                <Draggable key={`inning-${index}`} draggableId={`inning-${index}`} index={index}>
+                  {(provided, snapshot) => (
+                    <Box
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        opacity: snapshot.isDragging ? 0.8 : 1,
+                      }}
+                    >
+                      <Box
+                        {...provided.dragHandleProps}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          cursor: 'grab',
+                          '&:active': { cursor: 'grabbing' },
+                          mr: 0.5,
+                        }}
+                      >
+                        <DragIcon fontSize="small" color="action" />
+                      </Box>
+                      <Chip
+                        label={`Inning ${index + 1}`}
+                        onClick={() => setCurrentInning(index)}
+                        onDelete={innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
+                        color={currentInningIndex === index ? 'primary' : 'default'}
+                        variant={currentInningIndex === index ? 'filled' : 'outlined'}
+                        sx={{ minWidth: 100 }}
+                      />
+                    </Box>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </Stack>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {innings.length === 1 && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>

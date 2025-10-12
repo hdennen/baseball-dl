@@ -122,6 +122,30 @@ const useBaseballStore = create((set, get) => ({
   setCurrentInning: (index) => {
     set({ currentInningIndex: index });
   },
+
+  // Reorder innings (for drag and drop)
+  reorderInnings: (startIndex, endIndex) => {
+    set((state) => {
+      const newInnings = Array.from(state.innings);
+      const [removed] = newInnings.splice(startIndex, 1);
+      newInnings.splice(endIndex, 0, removed);
+
+      // Adjust currentInningIndex if necessary
+      let newCurrentIndex = state.currentInningIndex;
+      if (state.currentInningIndex === startIndex) {
+        newCurrentIndex = endIndex;
+      } else if (startIndex < state.currentInningIndex && endIndex >= state.currentInningIndex) {
+        newCurrentIndex = state.currentInningIndex - 1;
+      } else if (startIndex > state.currentInningIndex && endIndex <= state.currentInningIndex) {
+        newCurrentIndex = state.currentInningIndex + 1;
+      }
+
+      return {
+        innings: newInnings,
+        currentInningIndex: newCurrentIndex,
+      };
+    });
+  },
   
   // Get benched players for a specific inning
   getBenchedPlayers: (inningIndex) => {
