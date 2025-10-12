@@ -94,6 +94,30 @@ const useBaseballStore = create((set, get) => ({
     });
   },
   
+  // Remove an inning
+  removeInning: (index) => {
+    set((state) => {
+      if (state.innings.length <= 1) return state; // Must have at least 1 inning
+      
+      const newInnings = state.innings.filter((_, i) => i !== index);
+      
+      // Adjust current inning index if necessary
+      let newCurrentIndex = state.currentInningIndex;
+      if (index === state.currentInningIndex) {
+        // If we're deleting the current inning, move to the previous one (or 0)
+        newCurrentIndex = Math.max(0, index - 1);
+      } else if (index < state.currentInningIndex) {
+        // If we're deleting an inning before the current one, adjust the index
+        newCurrentIndex = state.currentInningIndex - 1;
+      }
+      
+      return {
+        innings: newInnings,
+        currentInningIndex: newCurrentIndex,
+      };
+    });
+  },
+  
   // Set the current inning being edited
   setCurrentInning: (index) => {
     set({ currentInningIndex: index });

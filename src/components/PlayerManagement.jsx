@@ -7,10 +7,8 @@ import {
   Button,
   Chip,
   Stack,
-  IconButton,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { Droppable, Draggable } from 'react-beautiful-dnd';
 import useBaseballStore from '../store/useBaseballStore';
 
 function PlayerManagement() {
@@ -19,7 +17,15 @@ function PlayerManagement() {
 
   const handleAddPlayer = () => {
     if (playerName.trim()) {
-      addPlayer(playerName.trim());
+      // Check if input contains commas (comma-delimited list)
+      if (playerName.includes(',')) {
+        // Split by comma and add each player
+        const names = playerName.split(',').map(name => name.trim()).filter(name => name);
+        names.forEach(name => addPlayer(name));
+      } else {
+        // Single player
+        addPlayer(playerName.trim());
+      }
       setPlayerName('');
     }
   };
@@ -39,73 +45,57 @@ function PlayerManagement() {
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <TextField
           fullWidth
-          label="Player Name"
+          label="Player Name(s)"
+          placeholder="Enter name or paste comma-separated names (e.g., John, Sarah, Mike)"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
           onKeyPress={handleKeyPress}
           size="small"
+          helperText="Tip: Paste comma-separated names to add multiple players at once"
         />
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleAddPlayer}
           disabled={!playerName.trim()}
+          sx={{ minWidth: 120 }}
         >
-          Add Player
+          Add
         </Button>
       </Box>
 
-      <Droppable droppableId="player-pool">
-        {(provided, snapshot) => (
-          <Box
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            sx={{
-              minHeight: 60,
-              p: 2,
-              border: '2px dashed',
-              borderColor: snapshot.isDraggingOver ? 'primary.main' : 'grey.300',
-              borderRadius: 1,
-              bgcolor: snapshot.isDraggingOver ? 'action.hover' : 'transparent',
-              transition: 'all 0.2s',
-            }}
-          >
-            {players.length === 0 ? (
-              <Typography variant="body2" color="text.secondary" align="center">
-                No players added yet. Add players above to get started.
-              </Typography>
-            ) : (
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {players.map((player, index) => (
-                  <Draggable key={player.id} draggableId={player.id} index={index}>
-                    {(provided, snapshot) => (
-                      <Box
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        sx={{ mb: 1 }}
-                      >
-                        <Chip
-                          label={player.name}
-                          onDelete={() => removePlayer(player.id)}
-                          deleteIcon={<DeleteIcon />}
-                          color="primary"
-                          variant={snapshot.isDragging ? 'filled' : 'outlined'}
-                          sx={{
-                            opacity: snapshot.isDragging ? 0.5 : 1,
-                            transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
-                          }}
-                        />
-                      </Box>
-                    )}
-                  </Draggable>
-                ))}
-              </Stack>
-            )}
-            {provided.placeholder}
-          </Box>
+      <Box
+        sx={{
+          minHeight: 60,
+          p: 2,
+          border: '2px dashed',
+          borderColor: 'grey.300',
+          borderRadius: 1,
+          bgcolor: 'grey.50',
+        }}
+      >
+        {players.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" align="center">
+            No players added yet. Add players above to get started.
+          </Typography>
+        ) : (
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            {players.map((player) => (
+              <Chip
+                key={player.id}
+                label={player.name}
+                onDelete={() => removePlayer(player.id)}
+                deleteIcon={<DeleteIcon />}
+                color="primary"
+                variant="outlined"
+              />
+            ))}
+          </Stack>
         )}
-      </Droppable>
+      </Box>
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+        Drag players from the Bench section below to assign them to positions
+      </Typography>
     </Paper>
   );
 }

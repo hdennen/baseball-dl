@@ -35,22 +35,20 @@ function App() {
       return;
     }
 
-    // Extract position from droppableId (format: "position-{positionName}")
-    const targetPosition = destination.droppableId.replace('position-', '');
-    
     // Extract playerId from draggableId
     const playerId = draggableId;
 
     // If dropped on a position
     if (destination.droppableId.startsWith('position-')) {
+      const targetPosition = destination.droppableId.replace('position-', '');
       assignPosition(targetPosition, playerId);
     }
     
-    // If dropped back to player pool
-    if (destination.droppableId === 'player-pool') {
+    // If dropped back to bench
+    if (destination.droppableId === 'bench') {
       // Find which position this player was in and remove them
-      const sourcePosition = source.droppableId.replace('position-', '');
       if (source.droppableId.startsWith('position-')) {
+        const sourcePosition = source.droppableId.replace('position-', '');
         assignPosition(sourcePosition, null);
       }
     }

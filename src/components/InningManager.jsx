@@ -6,8 +6,10 @@ import {
   ButtonGroup,
   Chip,
   Stack,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { Add as AddIcon, ContentCopy as CopyIcon } from '@mui/icons-material';
+import { Add as AddIcon, ContentCopy as CopyIcon, Close as CloseIcon } from '@mui/icons-material';
 import useBaseballStore from '../store/useBaseballStore';
 
 function InningManager() {
@@ -17,7 +19,13 @@ function InningManager() {
     setCurrentInning,
     addEmptyInning,
     addInningWithCarryOver,
+    removeInning,
   } = useBaseballStore();
+
+  const handleDeleteInning = (index, event) => {
+    event.stopPropagation(); // Prevent the chip click event from firing
+    removeInning(index);
+  };
 
   return (
     <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
@@ -48,12 +56,19 @@ function InningManager() {
             key={index}
             label={`Inning ${index + 1}`}
             onClick={() => setCurrentInning(index)}
+            onDelete={innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
             color={currentInningIndex === index ? 'primary' : 'default'}
             variant={currentInningIndex === index ? 'filled' : 'outlined'}
             sx={{ minWidth: 100 }}
           />
         ))}
       </Stack>
+
+      {innings.length === 1 && (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+          At least one inning is required
+        </Typography>
+      )}
 
       {innings.length >= 9 && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
