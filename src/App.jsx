@@ -20,7 +20,7 @@ const theme = createTheme({
 
 function App() {
   const [currentView, setCurrentView] = useState(0);
-  const { assignPosition, players } = useBaseballStore();
+  const { assignPosition, players, reorderInnings } = useBaseballStore();
 
   const handleDragEnd = (result) => {
     const { destination, source, draggableId } = result;
@@ -32,6 +32,12 @@ function App() {
       destination.droppableId === source.droppableId &&
       destination.index === source.index
     ) {
+      return;
+    }
+
+    // Handle inning reordering
+    if (destination.droppableId === 'innings' && source.droppableId === 'innings') {
+      reorderInnings(source.index, destination.index);
       return;
     }
 
