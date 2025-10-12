@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme } from '@mui/material';
-import { DragDropContext } from 'react-beautiful-dnd';
+import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import PlayerManagement from './components/PlayerManagement';
 import BaseballField from './components/BaseballField';
 import InningManager from './components/InningManager';
@@ -20,49 +20,65 @@ const theme = createTheme({
 
 function App() {
   const [currentView, setCurrentView] = useState(0);
-  const { assignPosition, players, reorderInnings } = useBaseballStore();
+  const [activeId, setActiveId] = useState(null);
+  const { assignPosition } = useBaseballStore();
 
-  const handleDragEnd = (result) => {
-    const { destination, source, draggableId } = result;
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required before drag starts
+      },
+    })
+  );
 
-    if (!destination) return;
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    
+    setActiveId(null);
+
+    if (!over) return;
 
     // If dropped in the same place, do nothing
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
+    if (active.id === over.id) {
       return;
     }
 
-    // Handle inning reordering
-    if (destination.droppableId === 'innings' && source.droppableId === 'innings') {
-      reorderInnings(source.index, destination.index);
-      return;
-    }
-
-    // Extract playerId from draggableId
-    const playerId = draggableId;
+    const activeId = active.id;
+    const overId = over.id;
 
     // If dropped on a position
-    if (destination.droppableId.startsWith('position-')) {
-      const targetPosition = destination.droppableId.replace('position-', '');
-      assignPosition(targetPosition, playerId);
+    if (overId.startsWith('position-')) {
+      const targetPosition = overId.replace('position-', '');
+      assignPosition(targetPosition, activeId);
     }
     
     // If dropped back to bench
-    if (destination.droppableId === 'bench') {
+    if (overId === 'bench') {
       // Find which position this player was in and remove them
-      if (source.droppableId.startsWith('position-')) {
-        const sourcePosition = source.droppableId.replace('position-', '');
+      const sourcePosition = active.data.current?.position;
+      if (sourcePosition) {
         assignPosition(sourcePosition, null);
       }
     }
   };
 
+  const handleDragCancel = () => {
+    setActiveId(null);
+  };
+
   return (
     <ThemeProvider theme={theme}>
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
         <Container 
           maxWidth="xl" 
           sx={{ 
@@ -107,7 +123,7 @@ function App() {
             <InningsSummary />
           )}
         </Container>
-      </DragDropContext>
+      </DndContext>
     </ThemeProvider>
   );
 }

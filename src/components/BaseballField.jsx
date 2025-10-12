@@ -1,65 +1,110 @@
 import { Box, Paper, Typography, Chip, Button } from '@mui/material';
 import { Shuffle as ShuffleIcon } from '@mui/icons-material';
-import { Droppable, Draggable } from 'react-beautiful-dnd';
+import { useDroppable } from '@dnd-kit/core';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import useBaseballStore from '../store/useBaseballStore';
 
-function PositionSlot({ position, player, index }) {
+function DraggablePlayer({ player, position }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: player.id,
+    data: {
+      player,
+      position,
+    },
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Box ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      <Chip
+        label={player.name}
+        color="success"
+        size="small"
+        sx={{
+          cursor: isDragging ? 'grabbing' : 'grab',
+        }}
+      />
+    </Box>
+  );
+}
+
+function PositionSlot({ position, player }) {
   const { getPositionLabel } = useBaseballStore();
   const label = getPositionLabel(position);
 
+  const { setNodeRef, isOver } = useDroppable({
+    id: `position-${position}`,
+    data: {
+      type: 'position',
+      position,
+    },
+  });
+
   return (
-    <Droppable droppableId={`position-${position}`}>
-      {(provided, snapshot) => (
-        <Paper
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          elevation={snapshot.isDraggingOver ? 6 : 2}
-          sx={{
-            p: 2,
-            minHeight: 80,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            border: '2px solid',
-            borderColor: snapshot.isDraggingOver ? 'primary.main' : 'transparent',
-            bgcolor: snapshot.isDraggingOver ? 'action.hover' : 'background.paper',
-            transition: 'all 0.2s',
-          }}
-        >
-          <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: 1 }}>
-            {label}
-          </Typography>
-          
-          {player ? (
-            <Draggable draggableId={player.id} index={index}>
-              {(provided, snapshot) => (
-                <Box
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                >
-                  <Chip
-                    label={player.name}
-                    color="success"
-                    size="small"
-                    sx={{
-                      opacity: snapshot.isDragging ? 0.5 : 1,
-                    }}
-                  />
-                </Box>
-              )}
-            </Draggable>
-          ) : (
-            <Typography variant="body2" color="text.disabled">
-              Empty
-            </Typography>
-          )}
-          
-          {provided.placeholder}
-        </Paper>
+    <Paper
+      ref={setNodeRef}
+      elevation={isOver ? 6 : 2}
+      sx={{
+        p: 2,
+        minHeight: 80,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        border: '2px solid',
+        borderColor: isOver ? 'primary.main' : 'transparent',
+        bgcolor: isOver ? 'action.hover' : 'background.paper',
+        transition: 'all 0.2s',
+      }}
+    >
+      <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: 1 }}>
+        {label}
+      </Typography>
+      
+      {player ? (
+        <DraggablePlayer player={player} position={position} />
+      ) : (
+        <Typography variant="body2" color="text.disabled">
+          Empty
+        </Typography>
       )}
-    </Droppable>
+    </Paper>
+  );
+}
+
+function BenchPlayer({ player, index }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: player.id,
+    data: {
+      player,
+      fromBench: true,
+    },
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Box ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      <Chip
+        label={player.name}
+        color="warning"
+        variant="outlined"
+        size="medium"
+        sx={{
+          width: '100%',
+          justifyContent: 'flex-start',
+          cursor: isDragging ? 'grabbing' : 'grab',
+        }}
+      />
+    </Box>
   );
 }
 
@@ -74,6 +119,13 @@ function BaseballField() {
     const playerId = currentInning.positions[position];
     return players.find((p) => p.id === playerId);
   };
+
+  const { setNodeRef: setBenchRef, isOver: isBenchOver } = useDroppable({
+    id: 'bench',
+    data: {
+      type: 'bench',
+    },
+  });
 
   return (
     <Paper elevation={2} sx={{ p: 3 }}>
@@ -159,35 +211,30 @@ function BaseballField() {
               <PositionSlot
                 position="left-field"
                 player={getPlayerForPosition('left-field')}
-                index={6}
               />
             </Box>
             <Box sx={{ position: 'absolute', left: '25%', top: '8%' }}>
               <PositionSlot
                 position="center-left-field"
                 player={getPlayerForPosition('center-left-field')}
-                index={7}
               />
             </Box>
             <Box sx={{ position: 'absolute', left: '50%', top: '5%', transform: 'translateX(-50%)' }}>
               <PositionSlot
                 position="center-field"
                 player={getPlayerForPosition('center-field')}
-                index={8}
               />
             </Box>
             <Box sx={{ position: 'absolute', right: '25%', top: '8%' }}>
               <PositionSlot
                 position="center-right-field"
                 player={getPlayerForPosition('center-right-field')}
-                index={9}
               />
             </Box>
             <Box sx={{ position: 'absolute', right: '8%', top: '15%' }}>
               <PositionSlot
                 position="right-field"
                 player={getPlayerForPosition('right-field')}
-                index={10}
               />
             </Box>
 
@@ -196,14 +243,12 @@ function BaseballField() {
               <PositionSlot
                 position="third-base"
                 player={getPlayerForPosition('third-base')}
-                index={5}
               />
             </Box>
             <Box sx={{ position: 'absolute', left: '32%', top: '38%' }}>
               <PositionSlot
                 position="shortstop"
                 player={getPlayerForPosition('shortstop')}
-                index={4}
               />
             </Box>
 
@@ -212,14 +257,12 @@ function BaseballField() {
               <PositionSlot
                 position="second-base"
                 player={getPlayerForPosition('second-base')}
-                index={3}
               />
             </Box>
             <Box sx={{ position: 'absolute', right: '15%', top: '48%' }}>
               <PositionSlot
                 position="first-base"
                 player={getPlayerForPosition('first-base')}
-                index={2}
               />
             </Box>
 
@@ -228,7 +271,6 @@ function BaseballField() {
               <PositionSlot
                 position="pitcher"
                 player={getPlayerForPosition('pitcher')}
-                index={0}
               />
             </Box>
 
@@ -237,7 +279,6 @@ function BaseballField() {
               <PositionSlot
                 position="catcher"
                 player={getPlayerForPosition('catcher')}
-                index={1}
               />
             </Box>
           </Box>
@@ -251,63 +292,33 @@ function BaseballField() {
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
             Drag players to field positions
           </Typography>
-          <Droppable droppableId="bench">
-            {(provided, snapshot) => (
-              <Paper
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  height: 700,
-                  maxHeight: 700,
-                  overflowY: 'auto',
-                  bgcolor: snapshot.isDraggingOver ? 'warning.50' : 'grey.50',
-                  border: '2px solid',
-                  borderColor: snapshot.isDraggingOver ? 'warning.main' : 'grey.300',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                  transition: 'all 0.2s',
-                }}
-              >
-                {benchedPlayers.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 4 }}>
-                    All players are assigned to positions
-                  </Typography>
-                ) : (
-                  benchedPlayers.map((player, index) => (
-                    <Draggable key={player.id} draggableId={player.id} index={index}>
-                      {(provided, snapshot) => (
-                        <Box
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <Chip
-                            label={player.name}
-                            color="warning"
-                            variant="outlined"
-                            size="medium"
-                            sx={{
-                              width: '100%',
-                              justifyContent: 'flex-start',
-                              opacity: snapshot.isDragging ? 0.5 : 1,
-                              cursor: 'grab',
-                              '&:active': {
-                                cursor: 'grabbing',
-                              },
-                            }}
-                          />
-                        </Box>
-                      )}
-                    </Draggable>
-                  ))
-                )}
-                {provided.placeholder}
-              </Paper>
+          <Paper
+            ref={setBenchRef}
+            variant="outlined"
+            sx={{
+              p: 2,
+              height: 700,
+              maxHeight: 700,
+              overflowY: 'auto',
+              bgcolor: isBenchOver ? 'warning.50' : 'grey.50',
+              border: '2px solid',
+              borderColor: isBenchOver ? 'warning.main' : 'grey.300',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              transition: 'all 0.2s',
+            }}
+          >
+            {benchedPlayers.length === 0 ? (
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 4 }}>
+                All players are assigned to positions
+              </Typography>
+            ) : (
+              benchedPlayers.map((player, index) => (
+                <BenchPlayer key={player.id} player={player} index={index} />
+              ))
             )}
-          </Droppable>
+          </Paper>
         </Box>
       </Box>
     </Paper>
@@ -315,4 +326,3 @@ function BaseballField() {
 }
 
 export default BaseballField;
-

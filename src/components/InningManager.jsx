@@ -8,8 +8,70 @@ import {
   Stack,
 } from '@mui/material';
 import { Add as AddIcon, ContentCopy as CopyIcon, DragIndicator as DragIcon } from '@mui/icons-material';
-import { Droppable, Draggable } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import useBaseballStore from '../store/useBaseballStore';
+
+function SortableInning({ inning, index, isActive, onClick, onDelete }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `inning-${index}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Box
+      ref={setNodeRef}
+      style={style}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      <Box
+        {...listeners}
+        {...attributes}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          cursor: isDragging ? 'grabbing' : 'grab',
+          mr: 0.5,
+          touchAction: 'none',
+        }}
+      >
+        <DragIcon fontSize="small" color="action" />
+      </Box>
+      <Chip
+        label={`Inning ${index + 1}`}
+        onClick={onClick}
+        onDelete={onDelete}
+        color={isActive ? 'primary' : 'default'}
+        variant={isActive ? 'filled' : 'outlined'}
+        sx={{ minWidth: 100 }}
+      />
+    </Box>
+  );
+}
 
 function InningManager() {
   const {
@@ -19,11 +81,30 @@ function InningManager() {
     addEmptyInning,
     addInningWithCarryOver,
     removeInning,
+    reorderInnings,
   } = useBaseballStore();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const handleDeleteInning = (index, event) => {
     event.stopPropagation(); // Prevent the chip click event from firing
     removeInning(index);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = parseInt(active.id.replace('inning-', ''));
+      const newIndex = parseInt(over.id.replace('inning-', ''));
+      reorderInnings(oldIndex, newIndex);
+    }
   };
 
   return (
@@ -49,62 +130,38 @@ function InningManager() {
         </ButtonGroup>
       </Box>
 
-      <Droppable droppableId="innings" direction="horizontal">
-        {(provided, snapshot) => (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={innings.map((_, index) => `inning-${index}`)}
+          strategy={horizontalListSortingStrategy}
+        >
           <Stack
-            ref={provided.innerRef}
-            {...provided.droppableProps}
             direction="row"
             spacing={1}
             flexWrap="wrap"
             useFlexGap
             sx={{
-              bgcolor: snapshot.isDraggingOver ? 'action.hover' : 'transparent',
               p: 1,
               borderRadius: 1,
-              transition: 'background-color 0.2s',
             }}
           >
             {innings.map((inning, index) => (
-              <Draggable key={`inning-${index}`} draggableId={`inning-${index}`} index={index}>
-                {(provided, snapshot) => (
-                  <Box
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      opacity: snapshot.isDragging ? 0.8 : 1,
-                    }}
-                  >
-                    <Box
-                      {...provided.dragHandleProps}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        cursor: 'grab',
-                        '&:active': { cursor: 'grabbing' },
-                        mr: 0.5,
-                      }}
-                    >
-                      <DragIcon fontSize="small" color="action" />
-                    </Box>
-                    <Chip
-                      label={`Inning ${index + 1}`}
-                      onClick={() => setCurrentInning(index)}
-                      onDelete={innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
-                      color={currentInningIndex === index ? 'primary' : 'default'}
-                      variant={currentInningIndex === index ? 'filled' : 'outlined'}
-                      sx={{ minWidth: 100 }}
-                    />
-                  </Box>
-                )}
-              </Draggable>
+              <SortableInning
+                key={`inning-${index}`}
+                inning={inning}
+                index={index}
+                isActive={currentInningIndex === index}
+                onClick={() => setCurrentInning(index)}
+                onDelete={innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
+              />
             ))}
-            {provided.placeholder}
           </Stack>
-        )}
-      </Droppable>
+        </SortableContext>
+      </DndContext>
 
       {innings.length === 1 && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
@@ -122,4 +179,3 @@ function InningManager() {
 }
 
 export default InningManager;
-
