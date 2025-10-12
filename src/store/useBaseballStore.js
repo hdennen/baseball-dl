@@ -77,8 +77,10 @@ const useBaseballStore = create((set, get) => ({
   addEmptyInning: () => {
     set((state) => {
       if (state.innings.length >= 9) return state; // Max 9 innings
+      const newInnings = [...state.innings, { positions: {} }];
       return {
-        innings: [...state.innings, { positions: {} }],
+        innings: newInnings,
+        currentInningIndex: newInnings.length - 1, // Switch to the new inning
       };
     });
   },
@@ -88,8 +90,10 @@ const useBaseballStore = create((set, get) => ({
     set((state) => {
       if (state.innings.length >= 9) return state; // Max 9 innings
       const lastInning = state.innings[state.innings.length - 1];
+      const newInnings = [...state.innings, { positions: { ...lastInning.positions } }];
       return {
-        innings: [...state.innings, { positions: { ...lastInning.positions } }],
+        innings: newInnings,
+        currentInningIndex: newInnings.length - 1, // Switch to the new inning
       };
     });
   },
