@@ -76,9 +76,27 @@ function InningsSummary() {
               display: 'flex',
               alignItems: 'center',
               fontSize: '0.7rem',
+              gap: 0.5,
             }}
           >
-            {playerName}
+            <Typography
+              component="span"
+              sx={{
+                fontWeight: 'bold',
+                fontSize: '0.7rem',
+                minWidth: '1em',
+              }}
+            >
+              {idx + 1}.
+            </Typography>
+            <Typography
+              component="span"
+              sx={{
+                fontSize: '0.7rem',
+              }}
+            >
+              {playerName}
+            </Typography>
           </Box>
         );
       })}
@@ -129,7 +147,6 @@ function InningsSummary() {
             position: 'relative', 
             minHeight: 800, 
             mb: 4,
-            bgcolor: '#f5f5f5',
             borderRadius: 2,
             p: 2,
             '@media print': {
@@ -143,18 +160,17 @@ function InningsSummary() {
           <Box
             sx={{
               position: 'absolute',
-              top: '50%',
+              top: '59%',
               left: '50%',
-              width: 550,
-              height: 550,
-              transform: 'translate(-50%, -45%) rotate(45deg)',
-              border: '4px solid #8b4513',
-              borderRadius: 1,
-              bgcolor: '#d2b48c',
-              opacity: 0.3,
+              width: 320,
+              height: 320,
+              transform: 'translate(-50%, -40%) rotate(45deg)',
+              borderTop: '2px solid black',
+              borderLeft: '2px solid black',
               zIndex: 0,
               '@media print': {
-                border: '3px solid #8b4513',
+                borderTop: '1px solid black',
+                borderLeft: '1px solid black',
               },
             }}
           />
@@ -163,29 +179,35 @@ function InningsSummary() {
           <Box
             sx={{
               position: 'absolute',
-              bottom: '12%',
+              bottom: '10%',
               left: '50%',
-              width: '50%',
-              height: '3px',
-              bgcolor: 'white',
+              width: '60%',
+              height: '2px',
+              bgcolor: 'black',
               transform: 'rotate(-45deg)',
               transformOrigin: 'left center',
-              opacity: 0.4,
               zIndex: 0,
+              '@media print': {
+                borderBottom: '1px solid black',
+                borderLeft: '1px solid black',
+              },
             }}
           />
           <Box
             sx={{
               position: 'absolute',
-              bottom: '12%',
+              bottom: '10%',
               right: '50%',
-              width: '50%',
-              height: '3px',
-              bgcolor: 'white',
+              width: '60%',
+              height: '2px',
+              bgcolor: 'black',
               transform: 'rotate(45deg)',
               transformOrigin: 'right center',
-              opacity: 0.4,
               zIndex: 0,
+              '@media print': {
+                borderBottom: '1px solid black',
+                borderRight: '1px solid black',
+              },
             }}
           />
 
@@ -193,14 +215,17 @@ function InningsSummary() {
           <Box
             sx={{
               position: 'absolute',
-              top: '5%',
+              top: '24%',
               left: '50%',
-              width: 750,
-              height: 375,
+              width: 600,
+              height: 300,
               transform: 'translateX(-50%)',
-              borderTop: '3px solid rgba(0,0,0,0.15)',
-              borderRadius: '375px 375px 0 0',
+              borderTop: '2px solid black',
+              borderRadius: '300px 300px 0 0',
               zIndex: 0,
+              '@media print': {
+                borderTop: '1px solid black',
+              },
             }}
           />
 
@@ -307,21 +332,6 @@ function InningsSummary() {
             },
           }}
         >
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-              Opponent: ___________________________
-            </Typography>
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-              Date: ___________________________
-            </Typography>
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-              Result: ___________________________
-            </Typography>
-          </Box>
         </Box>
       </Paper>
     </Box>

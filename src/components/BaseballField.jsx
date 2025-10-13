@@ -149,12 +149,13 @@ function BaseballField() {
           <Box
             sx={{
               position: 'absolute',
-              top: '50%',
+              top: '53%',
               left: '50%',
-              width: 400,
-              height: 400,
+              width: 320,
+              height: 320,
               transform: 'translate(-50%, -40%) rotate(45deg)',
-              border: '3px solid black',
+              borderTop: '2px solid black',
+              borderLeft: '2px solid black',
               zIndex: 0,
             }}
           />
@@ -165,7 +166,7 @@ function BaseballField() {
               position: 'absolute',
               bottom: '10%',
               left: '50%',
-              width: '45%',
+              width: '60%',
               height: '2px',
               bgcolor: 'black',
               transform: 'rotate(-45deg)',
@@ -178,7 +179,7 @@ function BaseballField() {
               position: 'absolute',
               bottom: '10%',
               right: '50%',
-              width: '45%',
+              width: '60%',
               height: '2px',
               bgcolor: 'black',
               transform: 'rotate(45deg)',
@@ -191,7 +192,7 @@ function BaseballField() {
           <Box
             sx={{
               position: 'absolute',
-              top: '8%',
+              top: '13%',
               left: '50%',
               width: 600,
               height: 300,
@@ -205,31 +206,31 @@ function BaseballField() {
           {/* Position Slots - Absolutely positioned */}
           <Box sx={{ position: 'relative', zIndex: 1, height: '100%' }}>
             {/* Outfield */}
-            <Box sx={{ position: 'absolute', left: '8%', top: '15%' }}>
+            <Box sx={{ position: 'absolute', left: '20%', top: '20%' }}>
               <PositionSlot
                 position="left-field"
                 player={getPlayerForPosition('left-field')}
               />
             </Box>
-            <Box sx={{ position: 'absolute', left: '25%', top: '8%' }}>
+            <Box sx={{ position: 'absolute', left: '30%', top: '6%' }}>
               <PositionSlot
                 position="center-left-field"
                 player={getPlayerForPosition('center-left-field')}
               />
             </Box>
-            <Box sx={{ position: 'absolute', left: '50%', top: '5%', transform: 'translateX(-50%)' }}>
+            <Box sx={{ position: 'absolute', left: '50%', top: '0%', transform: 'translateX(-50%)' }}>
               <PositionSlot
                 position="center-field"
                 player={getPlayerForPosition('center-field')}
               />
             </Box>
-            <Box sx={{ position: 'absolute', right: '25%', top: '8%' }}>
+            <Box sx={{ position: 'absolute', right: '29%', top: '6%' }}>
               <PositionSlot
                 position="center-right-field"
                 player={getPlayerForPosition('center-right-field')}
               />
             </Box>
-            <Box sx={{ position: 'absolute', right: '8%', top: '15%' }}>
+            <Box sx={{ position: 'absolute', right: '20%', top: '20%' }}>
               <PositionSlot
                 position="right-field"
                 player={getPlayerForPosition('right-field')}
@@ -237,13 +238,13 @@ function BaseballField() {
             </Box>
 
             {/* Infield - Left side (3B-SS line) */}
-            <Box sx={{ position: 'absolute', left: '15%', top: '48%' }}>
+            <Box sx={{ position: 'absolute', left: '27%', top: '42%' }}>
               <PositionSlot
                 position="third-base"
                 player={getPlayerForPosition('third-base')}
               />
             </Box>
-            <Box sx={{ position: 'absolute', left: '32%', top: '38%' }}>
+            <Box sx={{ position: 'absolute', left: '37%', top: '22%' }}>
               <PositionSlot
                 position="shortstop"
                 player={getPlayerForPosition('shortstop')}
@@ -251,13 +252,13 @@ function BaseballField() {
             </Box>
 
             {/* Infield - Right side (2B-1B line) */}
-            <Box sx={{ position: 'absolute', right: '32%', top: '38%' }}>
+            <Box sx={{ position: 'absolute', right: '36%', top: '22%' }}>
               <PositionSlot
                 position="second-base"
                 player={getPlayerForPosition('second-base')}
               />
             </Box>
-            <Box sx={{ position: 'absolute', right: '15%', top: '48%' }}>
+            <Box sx={{ position: 'absolute', right: '27%', top: '42%' }}>
               <PositionSlot
                 position="first-base"
                 player={getPlayerForPosition('first-base')}
