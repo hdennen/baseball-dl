@@ -107,10 +107,14 @@ function BenchPlayer({ player, index }) {
 }
 
 function BaseballField() {
-  const { innings, currentInningIndex, players, getBenchedPlayers, randomlyAssignPlayers } = useBaseballStore();
+  const { innings, currentInningIndex, players, getBenchedPlayers, randomlyAssignPlayers, getActivePositions } = useBaseballStore();
   
-  const currentInning = innings[currentInningIndex] || { positions: {} };
+  const currentInning = innings[currentInningIndex] || { positions: {}, fieldConfig: {} };
   const benchedPlayers = getBenchedPlayers(currentInningIndex);
+  const activePositions = getActivePositions(currentInningIndex);
+  
+  // Helper to check if a position is active
+  const isPositionActive = (position) => activePositions.includes(position);
 
   // Get player object for each position
   const getPlayerForPosition = (position) => {
@@ -212,24 +216,30 @@ function BaseballField() {
                 player={getPlayerForPosition('left-field')}
               />
             </Box>
-            <Box sx={{ position: 'absolute', left: '30%', top: '6%' }}>
-              <PositionSlot
-                position="center-left-field"
-                player={getPlayerForPosition('center-left-field')}
-              />
-            </Box>
-            <Box sx={{ position: 'absolute', left: '50%', top: '0%', transform: 'translateX(-50%)' }}>
-              <PositionSlot
-                position="center-field"
-                player={getPlayerForPosition('center-field')}
-              />
-            </Box>
-            <Box sx={{ position: 'absolute', right: '29%', top: '6%' }}>
-              <PositionSlot
-                position="center-right-field"
-                player={getPlayerForPosition('center-right-field')}
-              />
-            </Box>
+            {isPositionActive('center-left-field') && (
+              <Box sx={{ position: 'absolute', left: '30%', top: '6%' }}>
+                <PositionSlot
+                  position="center-left-field"
+                  player={getPlayerForPosition('center-left-field')}
+                />
+              </Box>
+            )}
+            {isPositionActive('center-field') && (
+              <Box sx={{ position: 'absolute', left: '50%', top: '0%', transform: 'translateX(-50%)' }}>
+                <PositionSlot
+                  position="center-field"
+                  player={getPlayerForPosition('center-field')}
+                />
+              </Box>
+            )}
+            {isPositionActive('center-right-field') && (
+              <Box sx={{ position: 'absolute', right: '29%', top: '6%' }}>
+                <PositionSlot
+                  position="center-right-field"
+                  player={getPlayerForPosition('center-right-field')}
+                />
+              </Box>
+            )}
             <Box sx={{ position: 'absolute', right: '20%', top: '20%' }}>
               <PositionSlot
                 position="right-field"

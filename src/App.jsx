@@ -5,6 +5,7 @@ import PlayerManagement from './components/PlayerManagement';
 import BaseballField from './components/BaseballField';
 import InningManager from './components/InningManager';
 import InningsSummary from './components/InningsSummary';
+import FieldConfiguration from './components/FieldConfiguration';
 import useBaseballStore from './store/useBaseballStore';
 
 const theme = createTheme({
@@ -115,6 +116,7 @@ function App() {
             <Box>
               <PlayerManagement />
               <InningManager />
+              <FieldConfiguration />
               <BaseballField />
             </Box>
           )}

@@ -19,8 +19,15 @@ const useBaseballStore = create((set, get) => ({
   players: [],
   
   // Innings array - each inning contains position assignments
-  // innings[inningIndex] = { positions: { 'pitcher': playerId, ... } }
-  innings: [{ positions: {} }], // Start with one empty inning
+  // innings[inningIndex] = { positions: { 'pitcher': playerId, ... }, fieldConfig: {...} }
+  innings: [{ 
+    positions: {},
+    fieldConfig: {
+      'center-field': true,
+      'center-left-field': false,
+      'center-right-field': false,
+    }
+  }], // Start with one empty inning with default field config
   
   // Currently selected inning for editing
   currentInningIndex: 0,
@@ -77,7 +84,12 @@ const useBaseballStore = create((set, get) => ({
   addEmptyInning: () => {
     set((state) => {
       if (state.innings.length >= 9) return state; // Max 9 innings
-      const newInnings = [...state.innings, { positions: {} }];
+      // Carry over field config from previous inning
+      const lastInning = state.innings[state.innings.length - 1];
+      const newInnings = [...state.innings, { 
+        positions: {},
+        fieldConfig: { ...lastInning.fieldConfig }
+      }];
       return {
         innings: newInnings,
         currentInningIndex: newInnings.length - 1, // Switch to the new inning
@@ -90,7 +102,10 @@ const useBaseballStore = create((set, get) => ({
     set((state) => {
       if (state.innings.length >= 9) return state; // Max 9 innings
       const lastInning = state.innings[state.innings.length - 1];
-      const newInnings = [...state.innings, { positions: { ...lastInning.positions } }];
+      const newInnings = [...state.innings, { 
+        positions: { ...lastInning.positions },
+        fieldConfig: { ...lastInning.fieldConfig }
+      }];
       return {
         innings: newInnings,
         currentInningIndex: newInnings.length - 1, // Switch to the new inning
@@ -157,16 +172,23 @@ const useBaseballStore = create((set, get) => ({
       if (state.players.length === 0) return state;
       
       const newInnings = [...state.innings];
+      const currentInning = newInnings[state.currentInningIndex];
       const shuffledPlayers = [...state.players].sort(() => Math.random() - 0.5);
       
+      // Get active positions based on field config
+      const activePositions = get().getActivePositions(state.currentInningIndex);
+      
       const newPositions = {};
-      POSITIONS.forEach((position, index) => {
+      activePositions.forEach((position, index) => {
         if (index < shuffledPlayers.length) {
           newPositions[position] = shuffledPlayers[index].id;
         }
       });
       
-      newInnings[state.currentInningIndex] = { positions: newPositions };
+      newInnings[state.currentInningIndex] = { 
+        positions: newPositions,
+        fieldConfig: currentInning.fieldConfig
+      };
       
       return { innings: newInnings };
     });
@@ -188,6 +210,48 @@ const useBaseballStore = create((set, get) => ({
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  },
+  
+  // Get active positions for a specific inning based on field config
+  getActivePositions: (inningIndex) => {
+    const state = get();
+    const inning = state.innings[inningIndex];
+    if (!inning || !inning.fieldConfig) {
+      return POSITIONS; // Return all positions if no config
+    }
+    
+    return POSITIONS.filter((position) => {
+      // Only filter the configurable positions
+      if (position === 'center-field' || position === 'center-left-field' || position === 'center-right-field') {
+        return inning.fieldConfig[position] === true;
+      }
+      return true; // All other positions are always active
+    });
+  },
+  
+  // Toggle a field position (and move players to bench if disabled)
+  toggleFieldPosition: (position) => {
+    set((state) => {
+      const newInnings = [...state.innings];
+      const currentInning = { ...newInnings[state.currentInningIndex] };
+      const newFieldConfig = { ...currentInning.fieldConfig };
+      
+      // Toggle the position
+      newFieldConfig[position] = !newFieldConfig[position];
+      
+      // If disabling the position, remove any player from that position
+      let newPositions = { ...currentInning.positions };
+      if (!newFieldConfig[position] && newPositions[position]) {
+        delete newPositions[position];
+      }
+      
+      newInnings[state.currentInningIndex] = {
+        positions: newPositions,
+        fieldConfig: newFieldConfig,
+      };
+      
+      return { innings: newInnings };
+    });
   },
 }));
 

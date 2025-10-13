@@ -41,67 +41,99 @@ function InningsSummary() {
     { key: 'catcher', label: 'C', section: 'battery' },
   ];
 
-  const PositionCard = ({ position }) => (
-    <Box
-      sx={{
-        border: '2px solid black',
-        borderRadius: 1,
-        minWidth: 75,
-        bgcolor: 'white',
-      }}
-    >
+  // Check if a position is active in ANY inning (for display purposes)
+  const isPositionUsedInAnyInning = (positionKey) => {
+    // Always show non-configurable positions
+    if (positionKey !== 'center-field' && positionKey !== 'center-left-field' && positionKey !== 'center-right-field') {
+      return true;
+    }
+    // Check if this position is enabled in any inning
+    return innings.some((inning) => {
+      const fieldConfig = inning.fieldConfig || {};
+      return fieldConfig[positionKey] === true;
+    });
+  };
+
+  // Filter positions to only show those that are used in at least one inning
+  const visiblePositions = positions.filter((pos) => isPositionUsedInAnyInning(pos.key));
+
+  const PositionCard = ({ position }) => {
+    // Check if this position is active in each inning
+    const isPositionActiveInInning = (inning, positionKey) => {
+      // Always show non-configurable positions
+      if (positionKey !== 'center-field' && positionKey !== 'center-left-field' && positionKey !== 'center-right-field') {
+        return true;
+      }
+      const fieldConfig = inning.fieldConfig || {};
+      return fieldConfig[positionKey] === true;
+    };
+
+    return (
       <Box
         sx={{
-          textAlign: 'center',
-          borderBottom: '2px solid black',
-          py: 0.25,
-          bgcolor: 'grey.200',
-          fontWeight: 'bold',
-          fontSize: '0.75rem',
+          border: '2px solid black',
+          borderRadius: 1,
+          minWidth: 75,
+          bgcolor: 'white',
         }}
       >
-        {position.label}
+        <Box
+          sx={{
+            textAlign: 'center',
+            borderBottom: '2px solid black',
+            py: 0.25,
+            bgcolor: 'grey.200',
+            fontWeight: 'bold',
+            fontSize: '0.75rem',
+          }}
+        >
+          {position.label}
+        </Box>
+        {innings.map((inning, idx) => {
+          const isActive = isPositionActiveInInning(inning, position.key);
+          const playerId = inning.positions[position.key];
+          const playerName = playerId ? getPlayerName(playerId) : '';
+          
+          return (
+            <Box
+              key={idx}
+              sx={{
+                borderTop: idx > 0 ? '1px solid black' : 'none',
+                px: 0.5,
+                py: 0.25,
+                minHeight: 24,
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '0.7rem',
+                gap: 0.5,
+                bgcolor: isActive ? 'white' : 'grey.200',
+                fontStyle: isActive ? 'normal' : 'italic',
+              }}
+            >
+              <Typography
+                component="span"
+                sx={{
+                  fontWeight: 'bold',
+                  fontSize: '0.7rem',
+                  minWidth: '1em',
+                }}
+              >
+                {idx + 1}.
+              </Typography>
+              <Typography
+                component="span"
+                sx={{
+                  fontSize: '0.7rem',
+                }}
+              >
+                {isActive ? playerName : '—'}
+              </Typography>
+            </Box>
+          );
+        })}
       </Box>
-      {innings.map((inning, idx) => {
-        const playerId = inning.positions[position.key];
-        const playerName = playerId ? getPlayerName(playerId) : '';
-        return (
-          <Box
-            key={idx}
-            sx={{
-              borderTop: idx > 0 ? '1px solid black' : 'none',
-              px: 0.5,
-              py: 0.25,
-              minHeight: 24,
-              display: 'flex',
-              alignItems: 'center',
-              fontSize: '0.7rem',
-              gap: 0.5,
-            }}
-          >
-            <Typography
-              component="span"
-              sx={{
-                fontWeight: 'bold',
-                fontSize: '0.7rem',
-                minWidth: '1em',
-              }}
-            >
-              {idx + 1}.
-            </Typography>
-            <Typography
-              component="span"
-              sx={{
-                fontSize: '0.7rem',
-              }}
-            >
-              {playerName}
-            </Typography>
-          </Box>
-        );
-      })}
-    </Box>
-  );
+    );
+  };
 
   return (
     <Box 
@@ -233,45 +265,51 @@ function InningsSummary() {
           <Box sx={{ position: 'relative', zIndex: 1, height: 800 }}>
             {/* Outfield */}
             <Box sx={{ position: 'absolute', left: '5%', top: '12%' }}>
-              <PositionCard position={positions[0]} /> {/* LF */}
+              <PositionCard position={visiblePositions.find(p => p.key === 'left-field')} />
             </Box>
-            <Box sx={{ position: 'absolute', left: '23%', top: '6%' }}>
-              <PositionCard position={positions[1]} /> {/* LCF */}
-            </Box>
-            <Box sx={{ position: 'absolute', left: '50%', top: '3%', transform: 'translateX(-50%)' }}>
-              <PositionCard position={positions[2]} /> {/* CF */}
-            </Box>
-            <Box sx={{ position: 'absolute', right: '23%', top: '6%' }}>
-              <PositionCard position={positions[3]} /> {/* RCF */}
-            </Box>
+            {visiblePositions.find(p => p.key === 'center-left-field') && (
+              <Box sx={{ position: 'absolute', left: '23%', top: '6%' }}>
+                <PositionCard position={visiblePositions.find(p => p.key === 'center-left-field')} />
+              </Box>
+            )}
+            {visiblePositions.find(p => p.key === 'center-field') && (
+              <Box sx={{ position: 'absolute', left: '50%', top: '3%', transform: 'translateX(-50%)' }}>
+                <PositionCard position={visiblePositions.find(p => p.key === 'center-field')} />
+              </Box>
+            )}
+            {visiblePositions.find(p => p.key === 'center-right-field') && (
+              <Box sx={{ position: 'absolute', right: '23%', top: '6%' }}>
+                <PositionCard position={visiblePositions.find(p => p.key === 'center-right-field')} />
+              </Box>
+            )}
             <Box sx={{ position: 'absolute', right: '5%', top: '12%' }}>
-              <PositionCard position={positions[4]} /> {/* RF */}
+              <PositionCard position={visiblePositions.find(p => p.key === 'right-field')} />
             </Box>
 
             {/* Infield - Left side (3B-SS line) */}
             <Box sx={{ position: 'absolute', left: '12%', top: '50%' }}>
-              <PositionCard position={positions[5]} /> {/* 3B */}
+              <PositionCard position={visiblePositions.find(p => p.key === 'third-base')} />
             </Box>
             <Box sx={{ position: 'absolute', left: '29%', top: '40%' }}>
-              <PositionCard position={positions[6]} /> {/* SS */}
+              <PositionCard position={visiblePositions.find(p => p.key === 'shortstop')} />
             </Box>
 
             {/* Infield - Right side (2B-1B line) */}
             <Box sx={{ position: 'absolute', right: '29%', top: '40%' }}>
-              <PositionCard position={positions[7]} /> {/* 2B */}
+              <PositionCard position={visiblePositions.find(p => p.key === 'second-base')} />
             </Box>
             <Box sx={{ position: 'absolute', right: '12%', top: '50%' }}>
-              <PositionCard position={positions[8]} /> {/* 1B */}
+              <PositionCard position={visiblePositions.find(p => p.key === 'first-base')} />
             </Box>
 
             {/* Pitcher - Center */}
             <Box sx={{ position: 'absolute', left: '50%', top: '50%', transform: 'translateX(-50%)' }}>
-              <PositionCard position={positions[9]} /> {/* P */}
+              <PositionCard position={visiblePositions.find(p => p.key === 'pitcher')} />
             </Box>
 
             {/* Catcher - Home */}
             <Box sx={{ position: 'absolute', left: '50%', bottom: '0%', transform: 'translateX(-50%)' }}>
-              <PositionCard position={positions[10]} /> {/* C */}
+              <PositionCard position={visiblePositions.find(p => p.key === 'catcher')} />
             </Box>
           </Box>
         </Box>
