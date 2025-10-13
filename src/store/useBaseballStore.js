@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 const POSITIONS = [
   'pitcher',
@@ -14,7 +15,9 @@ const POSITIONS = [
   'right-field',
 ];
 
-const useBaseballStore = create((set, get) => ({
+const useBaseballStore = create(
+  persist(
+    (set, get) => ({
   // Players array - each player has id and name
   players: [],
   
@@ -253,7 +256,19 @@ const useBaseballStore = create((set, get) => ({
       return { innings: newInnings };
     });
   },
-}));
+}),
+    {
+      name: 'baseball-lineup-storage', // localStorage key
+      version: 1, // version number for migrations if needed
+      partialize: (state) => ({
+        // Only persist these specific fields
+        players: state.players,
+        innings: state.innings,
+        currentInningIndex: state.currentInningIndex,
+      }),
+    }
+  )
+);
 
 export { POSITIONS };
 export default useBaseballStore;
