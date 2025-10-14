@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip } from '@mui/material';
+import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper } from '@mui/material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import PlayerManagement from './components/PlayerManagement';
 import BaseballField from './components/BaseballField';
@@ -115,9 +115,11 @@ function App() {
           {currentView === 0 && (
             <Box>
               <PlayerManagement />
-              <InningManager />
-              <FieldConfiguration />
-              <BaseballField />
+              <Paper elevation={3} sx={{ mt: 3, overflow: 'hidden' }}>
+                <InningManager />
+                <FieldConfiguration />
+                <BaseballField />
+              </Paper>
             </Box>
           )}
 

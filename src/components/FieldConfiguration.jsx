@@ -1,4 +1,4 @@
-import { Box, Paper, Typography, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
+import { Box, FormGroup, FormControlLabel, Checkbox, Typography } from '@mui/material';
 import useBaseballStore from '../store/useBaseballStore';
 
 function FieldConfiguration() {
@@ -16,44 +16,54 @@ function FieldConfiguration() {
   };
 
   return (
-    <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Field Configuration
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Toggle outfield positions for this inning. Players in disabled positions will be moved to the bench.
+    <Box sx={{ 
+      bgcolor: 'background.paper', 
+      borderBottom: 1, 
+      borderColor: 'divider',
+      px: 3,
+      py: 2,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 2,
+      flexWrap: 'wrap'
+    }}>
+      <Typography variant="body2" fontWeight="medium" color="text.secondary">
+        Outfield Config:
       </Typography>
       
-      <FormGroup>
+      <FormGroup row sx={{ gap: 2 }}>
         <FormControlLabel
           control={
             <Checkbox
               checked={fieldConfig['center-field']}
               onChange={() => handleToggle('center-field')}
+              size="small"
             />
           }
-          label="Center Field"
+          label={<Typography variant="body2">Center Field</Typography>}
         />
         <FormControlLabel
           control={
             <Checkbox
               checked={fieldConfig['center-left-field']}
               onChange={() => handleToggle('center-left-field')}
+              size="small"
             />
           }
-          label="Center Left Field (Little League)"
+          label={<Typography variant="body2">Center Left Field</Typography>}
         />
         <FormControlLabel
           control={
             <Checkbox
               checked={fieldConfig['center-right-field']}
               onChange={() => handleToggle('center-right-field')}
+              size="small"
             />
           }
-          label="Center Right Field (Little League)"
+          label={<Typography variant="body2">Center Right Field</Typography>}
         />
       </FormGroup>
-    </Paper>
+    </Box>
   );
 }
 

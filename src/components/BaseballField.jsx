@@ -130,10 +130,10 @@ function BaseballField() {
   });
 
   return (
-    <Paper elevation={2} sx={{ p: 3 }}>
+    <Box sx={{ bgcolor: 'background.paper', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5">
-          Inning {currentInningIndex + 1} - Field Positions
+        <Typography variant="h6" color="text.secondary">
+          Field Positions
         </Typography>
         <Button
           variant="outlined"
@@ -330,7 +330,7 @@ function BaseballField() {
           </Paper>
         </Box>
       </Box>
-    </Paper>
+    </Box>
   );
 }
 

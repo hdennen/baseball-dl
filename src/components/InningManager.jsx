@@ -1,23 +1,29 @@
 import { useState } from 'react';
 import {
   Box,
-  Paper,
-  Typography,
+  Tabs,
+  Tab,
   Button,
   ButtonGroup,
-  Chip,
-  Stack,
+  IconButton,
+  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import { 
   Add as AddIcon, 
-  ContentCopy as CopyIcon, 
-  DragIndicator as DragIcon,
+  ContentCopy as CopyIcon,
   DeleteSweep as ClearIcon,
+  Close as CloseIcon,
+  MoreVert as MoreIcon,
+  DragIndicator as DragIcon,
 } from '@mui/icons-material';
 import {
   DndContext,
@@ -34,7 +40,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import useBaseballStore from '../store/useBaseballStore';
 
-function SortableInning({ inning, index, isActive, onClick, onDelete }) {
+function SortableTab({ index, isActive, onClick, onDelete, label }) {
   const {
     attributes,
     listeners,
@@ -57,6 +63,8 @@ function SortableInning({ inning, index, isActive, onClick, onDelete }) {
       sx={{
         display: 'flex',
         alignItems: 'center',
+        borderRight: 1,
+        borderColor: 'divider',
       }}
     >
       <Box
@@ -66,20 +74,41 @@ function SortableInning({ inning, index, isActive, onClick, onDelete }) {
           display: 'flex',
           alignItems: 'center',
           cursor: isDragging ? 'grabbing' : 'grab',
-          mr: 0.5,
+          px: 0.5,
+          py: 1,
           touchAction: 'none',
+          '&:hover': {
+            bgcolor: 'action.hover',
+          },
         }}
       >
-        <DragIcon fontSize="small" color="action" />
+        <DragIcon fontSize="small" sx={{ color: 'text.secondary' }} />
       </Box>
-      <Chip
-        label={`Inning ${index + 1}`}
+      <Tab
+        label={label}
         onClick={onClick}
-        onDelete={onDelete}
-        color={isActive ? 'primary' : 'default'}
-        variant={isActive ? 'filled' : 'outlined'}
-        sx={{ minWidth: 100 }}
+        sx={{
+          minHeight: 48,
+          textTransform: 'none',
+          fontWeight: isActive ? 'bold' : 'normal',
+          color: isActive ? 'primary.main' : 'text.primary',
+        }}
       />
+      {onDelete && (
+        <IconButton
+          size="small"
+          onClick={onDelete}
+          sx={{
+            ml: -1,
+            mr: 0.5,
+            '&:hover': {
+              color: 'error.main',
+            },
+          }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      )}
     </Box>
   );
 }
@@ -97,6 +126,7 @@ function InningManager() {
   } = useBaseballStore();
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -107,7 +137,7 @@ function InningManager() {
   );
 
   const handleDeleteInning = (index, event) => {
-    event.stopPropagation(); // Prevent the chip click event from firing
+    event.stopPropagation();
     removeInning(index);
   };
 
@@ -126,84 +156,82 @@ function InningManager() {
     setConfirmDialogOpen(false);
   };
 
+  const handleMenuOpen = (event) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
   return (
-    <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h5">
-          Inning Management
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <ButtonGroup variant="contained" size="small" disabled={innings.length >= 9}>
-            <Button
-              startIcon={<AddIcon />}
-              onClick={addEmptyInning}
-            >
-              Add Empty Inning
-            </Button>
-            <Button
-              startIcon={<CopyIcon />}
-              onClick={addInningWithCarryOver}
-              disabled={innings.length === 0}
-            >
-              Add with Carry-Over
-            </Button>
-          </ButtonGroup>
-          <Button
-            variant="outlined"
-            color="error"
-            size="small"
-            startIcon={<ClearIcon />}
-            onClick={() => setConfirmDialogOpen(true)}
+    <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={innings.map((_, index) => `inning-${index}`)}
+            strategy={horizontalListSortingStrategy}
           >
-            Clear All
-          </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'auto', flex: 1 }}>
+              {innings.map((_, index) => (
+                <SortableTab
+                  key={`inning-${index}`}
+                  index={index}
+                  label={`Inning ${index + 1}`}
+                  isActive={currentInningIndex === index}
+                  onClick={() => setCurrentInning(index)}
+                  onDelete={innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
+                />
+              ))}
+            </Box>
+          </SortableContext>
+        </DndContext>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1 }}>
+          <ButtonGroup size="small" variant="outlined" disabled={innings.length >= 9}>
+            <Tooltip title="Add Empty Inning">
+              <Button
+                onClick={addEmptyInning}
+                startIcon={<AddIcon />}
+              >
+                Empty
+              </Button>
+            </Tooltip>
+            <Tooltip title="Add Inning with Carry-Over">
+              <Button
+                onClick={addInningWithCarryOver}
+                disabled={innings.length === 0}
+                startIcon={<CopyIcon />}
+              >
+                Copy
+              </Button>
+            </Tooltip>
+          </ButtonGroup>
+          
+          <Tooltip title="More Options">
+            <IconButton size="small" onClick={handleMenuOpen}>
+              <MoreIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Menu
+            anchorEl={menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={() => { setConfirmDialogOpen(true); handleMenuClose(); }}>
+              <ListItemIcon>
+                <ClearIcon fontSize="small" color="error" />
+              </ListItemIcon>
+              <ListItemText>Clear All Data</ListItemText>
+            </MenuItem>
+          </Menu>
         </Box>
       </Box>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={innings.map((_, index) => `inning-${index}`)}
-          strategy={horizontalListSortingStrategy}
-        >
-          <Stack
-            direction="row"
-            spacing={1}
-            flexWrap="wrap"
-            useFlexGap
-            sx={{
-              p: 1,
-              borderRadius: 1,
-            }}
-          >
-            {innings.map((inning, index) => (
-              <SortableInning
-                key={`inning-${index}`}
-                inning={inning}
-                index={index}
-                isActive={currentInningIndex === index}
-                onClick={() => setCurrentInning(index)}
-                onDelete={innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
-              />
-            ))}
-          </Stack>
-        </SortableContext>
-      </DndContext>
-
-      {innings.length === 1 && (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          At least one inning is required
-        </Typography>
-      )}
-
-      {innings.length >= 9 && (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          Maximum of 9 innings reached
-        </Typography>
-      )}
       
       <Dialog
         open={confirmDialogOpen}
@@ -225,7 +253,7 @@ function InningManager() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </Box>
   );
 }
 
