@@ -182,8 +182,9 @@ function InningsSummary() {
             borderRadius: 2,
             p: 2,
             '@media print': {
-              mb: 2,
-              p: 1,
+              width: '1000px',
+              transformOrigin: 'top center',
+              p: 0,
               pageBreakAfter: 'avoid',
             },
           }}
