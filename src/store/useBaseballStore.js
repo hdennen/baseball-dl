@@ -55,6 +55,7 @@ const useBaseballStore = create(
         positions: Object.fromEntries(
           Object.entries(inning.positions).filter(([_, pId]) => pId !== playerId)
         ),
+        fieldConfig: inning.fieldConfig,
       })),
     }));
   },
@@ -77,7 +78,10 @@ const useBaseballStore = create(
         delete newPositions[position];
       }
       
-      newInnings[state.currentInningIndex] = { positions: newPositions };
+      newInnings[state.currentInningIndex] = { 
+        positions: newPositions,
+        fieldConfig: currentInning.fieldConfig 
+      };
       
       return { innings: newInnings };
     });
