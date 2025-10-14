@@ -264,11 +264,11 @@ function InningsSummary() {
           {/* Position Cards - Absolutely positioned */}
           <Box sx={{ position: 'relative', zIndex: 1, height: 800 }}>
             {/* Outfield */}
-            <Box sx={{ position: 'absolute', left: '5%', top: '12%' }}>
+            <Box sx={{ position: 'absolute', left: '18%', top: '20%' }}>
               <PositionCard position={visiblePositions.find(p => p.key === 'left-field')} />
             </Box>
             {visiblePositions.find(p => p.key === 'center-left-field') && (
-              <Box sx={{ position: 'absolute', left: '23%', top: '6%' }}>
+              <Box sx={{ position: 'absolute', left: '30%', top: '6%' }}>
                 <PositionCard position={visiblePositions.find(p => p.key === 'center-left-field')} />
               </Box>
             )}
@@ -278,27 +278,27 @@ function InningsSummary() {
               </Box>
             )}
             {visiblePositions.find(p => p.key === 'center-right-field') && (
-              <Box sx={{ position: 'absolute', right: '23%', top: '6%' }}>
+              <Box sx={{ position: 'absolute', right: '30%', top: '6%' }}>
                 <PositionCard position={visiblePositions.find(p => p.key === 'center-right-field')} />
               </Box>
             )}
-            <Box sx={{ position: 'absolute', right: '5%', top: '12%' }}>
+            <Box sx={{ position: 'absolute', right: '18%', top: '20%' }}>
               <PositionCard position={visiblePositions.find(p => p.key === 'right-field')} />
             </Box>
 
             {/* Infield - Left side (3B-SS line) */}
-            <Box sx={{ position: 'absolute', left: '12%', top: '50%' }}>
+            <Box sx={{ position: 'absolute', left: '28%', top: '50%' }}>
               <PositionCard position={visiblePositions.find(p => p.key === 'third-base')} />
             </Box>
-            <Box sx={{ position: 'absolute', left: '29%', top: '40%' }}>
+            <Box sx={{ position: 'absolute', left: '39%', top: '28%' }}>
               <PositionCard position={visiblePositions.find(p => p.key === 'shortstop')} />
             </Box>
 
             {/* Infield - Right side (2B-1B line) */}
-            <Box sx={{ position: 'absolute', right: '29%', top: '40%' }}>
+            <Box sx={{ position: 'absolute', right: '39%', top: '28%' }}>
               <PositionCard position={visiblePositions.find(p => p.key === 'second-base')} />
             </Box>
-            <Box sx={{ position: 'absolute', right: '12%', top: '50%' }}>
+            <Box sx={{ position: 'absolute', right: '28%', top: '50%' }}>
               <PositionCard position={visiblePositions.find(p => p.key === 'first-base')} />
             </Box>
 
