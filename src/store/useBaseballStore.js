@@ -256,6 +256,22 @@ const useBaseballStore = create(
       return { innings: newInnings };
     });
   },
+  
+  // Clear all data and reset to initial state
+  clearAllData: () => {
+    set({
+      players: [],
+      innings: [{ 
+        positions: {},
+        fieldConfig: {
+          'center-field': true,
+          'center-left-field': false,
+          'center-right-field': false,
+        }
+      }],
+      currentInningIndex: 0,
+    });
+  },
 }),
     {
       name: 'baseball-lineup-storage', // localStorage key

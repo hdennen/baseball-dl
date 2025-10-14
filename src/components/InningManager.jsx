@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Box,
   Paper,
@@ -6,8 +7,18 @@ import {
   ButtonGroup,
   Chip,
   Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
-import { Add as AddIcon, ContentCopy as CopyIcon, DragIndicator as DragIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  ContentCopy as CopyIcon, 
+  DragIndicator as DragIcon,
+  DeleteSweep as ClearIcon,
+} from '@mui/icons-material';
 import {
   DndContext,
   closestCenter,
@@ -82,7 +93,10 @@ function InningManager() {
     addInningWithCarryOver,
     removeInning,
     reorderInnings,
+    clearAllData,
   } = useBaseballStore();
+
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -106,28 +120,44 @@ function InningManager() {
       reorderInnings(oldIndex, newIndex);
     }
   };
+  
+  const handleClearAll = () => {
+    clearAllData();
+    setConfirmDialogOpen(false);
+  };
 
   return (
     <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h5">
           Inning Management
         </Typography>
-        <ButtonGroup variant="contained" size="small" disabled={innings.length >= 9}>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <ButtonGroup variant="contained" size="small" disabled={innings.length >= 9}>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addEmptyInning}
+            >
+              Add Empty Inning
+            </Button>
+            <Button
+              startIcon={<CopyIcon />}
+              onClick={addInningWithCarryOver}
+              disabled={innings.length === 0}
+            >
+              Add with Carry-Over
+            </Button>
+          </ButtonGroup>
           <Button
-            startIcon={<AddIcon />}
-            onClick={addEmptyInning}
+            variant="outlined"
+            color="error"
+            size="small"
+            startIcon={<ClearIcon />}
+            onClick={() => setConfirmDialogOpen(true)}
           >
-            Add Empty Inning
+            Clear All
           </Button>
-          <Button
-            startIcon={<CopyIcon />}
-            onClick={addInningWithCarryOver}
-            disabled={innings.length === 0}
-          >
-            Add with Carry-Over
-          </Button>
-        </ButtonGroup>
+        </Box>
       </Box>
 
       <DndContext
@@ -174,6 +204,27 @@ function InningManager() {
           Maximum of 9 innings reached
         </Typography>
       )}
+      
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+      >
+        <DialogTitle>Clear All Data?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will permanently delete all players, innings, and position assignments. 
+            This action cannot be undone. Are you sure you want to continue?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleClearAll} color="error" variant="contained" autoFocus>
+            Clear All
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }
