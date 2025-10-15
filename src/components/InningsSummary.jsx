@@ -178,6 +178,7 @@ function InningsSummary() {
             display: 'flex',
             gap: 3,
             mb: 3,
+            mt: 0, // Add space above batting order and box score
             '@media print': {
               position: 'absolute',
               top: 0,
@@ -185,6 +186,7 @@ function InningsSummary() {
               right: 0,
               zIndex: 10,
               mb: 0,
+              mt: 2,
             },
           }}
         >
@@ -194,7 +196,7 @@ function InningsSummary() {
               width: 'fit-content',
             }}
           >
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem', textAlign: 'center' }}>
               BATTING ORDER
             </Typography>
             <Box
@@ -286,9 +288,10 @@ function InningsSummary() {
             sx={{ 
               flex: 1,
               maxWidth: '400px',
+              ml: 4,
             }}
           >
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem', textAlign: 'center' }}>
               BOX SCORE
             </Typography>
             <TableContainer component={Paper} variant="outlined">
@@ -338,6 +341,7 @@ function InningsSummary() {
             position: 'relative', 
             minHeight: 800, 
             mb: 4,
+            mt: 0,
             borderRadius: 2,
             p: 2,
             '@media print': {
@@ -345,7 +349,7 @@ function InningsSummary() {
               transformOrigin: 'top center',
               p: 0,
               pageBreakAfter: 'avoid',
-              marginTop: '120px', // Add space for batting order
+              marginTop: '160px', // Add space for batting order
             },
           }}
         >
@@ -485,7 +489,7 @@ function InningsSummary() {
             },
           }}
         >
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem', textAlign: 'center' }}>
             BENCH
           </Typography>
           <TableContainer component={Paper} variant="outlined">
