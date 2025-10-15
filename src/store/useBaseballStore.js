@@ -21,6 +21,9 @@ const useBaseballStore = create(
   // Players array - each player has id and name
   players: [],
   
+  // Batting order - array of player IDs in batting order
+  battingOrder: [],
+  
   // Innings array - each inning contains position assignments
   // innings[inningIndex] = { positions: { 'pitcher': playerId, ... }, fieldConfig: {...} }
   innings: [{ 
@@ -50,6 +53,8 @@ const useBaseballStore = create(
   removePlayer: (playerId) => {
     set((state) => ({
       players: state.players.filter((p) => p.id !== playerId),
+      // Also remove player from batting order
+      battingOrder: state.battingOrder.filter((id) => id !== playerId),
       // Also remove player from all innings
       innings: state.innings.map((inning) => ({
         positions: Object.fromEntries(
@@ -261,10 +266,53 @@ const useBaseballStore = create(
     });
   },
   
+  // Add player to batting order
+  addToBattingOrder: (playerId) => {
+    set((state) => {
+      if (state.battingOrder.includes(playerId)) return state;
+      return {
+        battingOrder: [...state.battingOrder, playerId],
+      };
+    });
+  },
+
+  // Remove player from batting order
+  removeFromBattingOrder: (playerId) => {
+    set((state) => ({
+      battingOrder: state.battingOrder.filter((id) => id !== playerId),
+    }));
+  },
+
+  // Reorder batting order (for drag and drop)
+  reorderBattingOrder: (startIndex, endIndex) => {
+    set((state) => {
+      const newBattingOrder = Array.from(state.battingOrder);
+      const [removed] = newBattingOrder.splice(startIndex, 1);
+      newBattingOrder.splice(endIndex, 0, removed);
+      return { battingOrder: newBattingOrder };
+    });
+  },
+
+  // Set entire batting order
+  setBattingOrder: (playerIds) => {
+    set({ battingOrder: playerIds });
+  },
+
+  // Get batting order with player details
+  getBattingOrderWithPlayers: () => {
+    const state = get();
+    return state.battingOrder.map((playerId, index) => ({
+      order: index + 1,
+      playerId,
+      player: state.players.find(p => p.id === playerId),
+    })).filter(item => item.player); // Only include players that still exist
+  },
+
   // Clear all data and reset to initial state
   clearAllData: () => {
     set({
       players: [],
+      battingOrder: [],
       innings: [{ 
         positions: {},
         fieldConfig: {
@@ -283,6 +331,7 @@ const useBaseballStore = create(
       partialize: (state) => ({
         // Only persist these specific fields
         players: state.players,
+        battingOrder: state.battingOrder,
         innings: state.innings,
         currentInningIndex: state.currentInningIndex,
       }),

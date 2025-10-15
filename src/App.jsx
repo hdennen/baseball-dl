@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper } from '@mui/material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import PlayerManagement from './components/PlayerManagement';
+import BattingOrder from './components/BattingOrder';
 import BaseballField from './components/BaseballField';
 import InningManager from './components/InningManager';
 import InningsSummary from './components/InningsSummary';
@@ -108,6 +109,7 @@ function App() {
             centered
             sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
           >
+            <Tab label="Batting Order" />
             <Tab label="Lineup Editor" />
             <Tab label="All Innings Summary" />
           </Tabs>
@@ -115,7 +117,13 @@ function App() {
           {currentView === 0 && (
             <Box>
               <PlayerManagement />
-              <Paper elevation={3} sx={{ mt: 3, overflow: 'hidden' }}>
+              <BattingOrder />
+            </Box>
+          )}
+
+          {currentView === 1 && (
+            <Box>
+              <Paper elevation={3} sx={{ overflow: 'hidden' }}>
                 <InningManager />
                 <FieldConfiguration />
                 <BaseballField />
@@ -123,7 +131,7 @@ function App() {
             </Box>
           )}
 
-          {currentView === 1 && (
+          {currentView === 2 && (
             <InningsSummary />
           )}
         </Container>
