@@ -172,105 +172,163 @@ function InningsSummary() {
           },
         }}
       >
-        {/* Batting Order */}
+        {/* Top Row: Batting Order and Box Score */}
         <Box 
           sx={{ 
+            display: 'flex',
+            gap: 3,
             mb: 3,
-            width: 'fit-content',
             '@media print': {
               position: 'absolute',
               top: 0,
               left: 0,
-              width: 'fit-content',
+              right: 0,
               zIndex: 10,
               mb: 0,
             },
           }}
         >
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
-            BATTING ORDER
-          </Typography>
-          <Box
-            sx={{
-              border: '2px solid black',
-              borderRadius: 1,
-              bgcolor: 'white',
-              '@media print': {
-                border: '1px solid black',
-              },
+          {/* Batting Order */}
+          <Box 
+            sx={{ 
+              width: 'fit-content',
             }}
           >
-            {getBattingOrderWithPlayers().map((item, index) => (
-              <Box
-                key={item.playerId}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderBottom: index < getBattingOrderWithPlayers().length - 1 ? '1px solid black' : 'none',
-                  px: 1,
-                  py: 0.5,
-                  minHeight: 28,
-                  '@media print': {
-                    borderBottom: index < getBattingOrderWithPlayers().length - 1 ? '1px solid black' : 'none',
-                    minHeight: 24,
-                    px: 0.5,
-                    py: 0.25,
-                  },
-                }}
-              >
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+              BATTING ORDER
+            </Typography>
+            <Box
+              sx={{
+                border: '2px solid black',
+                borderRadius: 1,
+                bgcolor: 'white',
+                '@media print': {
+                  border: '1px solid black',
+                },
+              }}
+            >
+              {getBattingOrderWithPlayers().map((item, index) => (
                 <Box
+                  key={item.playerId}
                   sx={{
-                    minWidth: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    bgcolor: 'black',
-                    color: 'white',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '0.75rem',
-                    mr: 1,
+                    borderBottom: index < getBattingOrderWithPlayers().length - 1 ? '1px solid black' : 'none',
+                    px: 1,
+                    py: 0.5,
+                    minHeight: 28,
                     '@media print': {
-                      minWidth: 20,
-                      height: 20,
-                      fontSize: '0.7rem',
-                      mr: 0.5,
+                      borderBottom: index < getBattingOrderWithPlayers().length - 1 ? '1px solid black' : 'none',
+                      minHeight: 24,
+                      px: 0.5,
+                      py: 0.25,
                     },
                   }}
                 >
-                  {item.order}
+                  <Box
+                    sx={{
+                      minWidth: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      bgcolor: 'black',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold',
+                      fontSize: '0.75rem',
+                      mr: 1,
+                      '@media print': {
+                        minWidth: 20,
+                        height: 20,
+                        fontSize: '0.7rem',
+                        mr: 0.5,
+                      },
+                    }}
+                  >
+                    {item.order}
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: '0.875rem',
+                      fontWeight: 'bold',
+                      '@media print': {
+                        fontSize: '0.75rem',
+                      },
+                    }}
+                  >
+                    {item.player.name}
+                  </Typography>
                 </Box>
-                <Typography
+              ))}
+              {getBattingOrderWithPlayers().length === 0 && (
+                <Box
                   sx={{
+                    p: 2,
+                    textAlign: 'center',
+                    fontStyle: 'italic',
+                    color: 'text.secondary',
                     fontSize: '0.875rem',
-                    fontWeight: 'bold',
                     '@media print': {
+                      p: 1,
                       fontSize: '0.75rem',
                     },
                   }}
                 >
-                  {item.player.name}
-                </Typography>
-              </Box>
-            ))}
-            {getBattingOrderWithPlayers().length === 0 && (
-              <Box
-                sx={{
-                  p: 2,
-                  textAlign: 'center',
-                  fontStyle: 'italic',
-                  color: 'text.secondary',
-                  fontSize: '0.875rem',
-                  '@media print': {
-                    p: 1,
-                    fontSize: '0.75rem',
-                  },
-                }}
-              >
-                No batting order set
-              </Box>
-            )}
+                  No batting order set
+                </Box>
+              )}
+            </Box>
+          </Box>
+
+          {/* Box Score Grid */}
+          <Box 
+            sx={{ 
+              flex: 1,
+              maxWidth: '400px',
+            }}
+          >
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+              BOX SCORE
+            </Typography>
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', border: '1px solid black', width: '60px' }}>
+                      Team
+                    </TableCell>
+                    {innings.map((_, idx) => (
+                      <TableCell key={idx} align="center" sx={{ fontWeight: 'bold', border: '1px solid black', minWidth: '30px' }}>
+                        {idx + 1}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', border: '1px solid black' }}>
+                      Away
+                    </TableCell>
+                    {innings.map((_, idx) => (
+                      <TableCell key={idx} sx={{ border: '1px solid black', minHeight: '32px' }}>
+                        {/* Empty cell for manual scoring */}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', border: '1px solid black' }}>
+                      Home
+                    </TableCell>
+                    {innings.map((_, idx) => (
+                      <TableCell key={idx} sx={{ border: '1px solid black', minHeight: '32px' }}>
+                        {/* Empty cell for manual scoring */}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Box>
         </Box>
 
@@ -287,6 +345,7 @@ function InningsSummary() {
               transformOrigin: 'top center',
               p: 0,
               pageBreakAfter: 'avoid',
+              marginTop: '120px', // Add space for batting order
             },
           }}
         >
