@@ -14,7 +14,7 @@ import { Print as PrintIcon } from '@mui/icons-material';
 import useBaseballStore from '../store/useBaseballStore';
 
 function InningsSummary() {
-  const { innings, players, getBenchedPlayers } = useBaseballStore();
+  const { innings, players, getBenchedPlayers, getBattingOrderWithPlayers } = useBaseballStore();
 
   // Get player name by ID
   const getPlayerName = (playerId) => {
@@ -172,6 +172,107 @@ function InningsSummary() {
           },
         }}
       >
+        {/* Batting Order */}
+        <Box 
+          sx={{ 
+            mb: 3,
+            width: 'fit-content',
+            '@media print': {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: 'fit-content',
+              zIndex: 10,
+              mb: 0,
+            },
+          }}
+        >
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+            BATTING ORDER
+          </Typography>
+          <Box
+            sx={{
+              border: '2px solid black',
+              borderRadius: 1,
+              bgcolor: 'white',
+              '@media print': {
+                border: '1px solid black',
+              },
+            }}
+          >
+            {getBattingOrderWithPlayers().map((item, index) => (
+              <Box
+                key={item.playerId}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  borderBottom: index < getBattingOrderWithPlayers().length - 1 ? '1px solid black' : 'none',
+                  px: 1,
+                  py: 0.5,
+                  minHeight: 28,
+                  '@media print': {
+                    borderBottom: index < getBattingOrderWithPlayers().length - 1 ? '1px solid black' : 'none',
+                    minHeight: 24,
+                    px: 0.5,
+                    py: 0.25,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    minWidth: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    bgcolor: 'black',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '0.75rem',
+                    mr: 1,
+                    '@media print': {
+                      minWidth: 20,
+                      height: 20,
+                      fontSize: '0.7rem',
+                      mr: 0.5,
+                    },
+                  }}
+                >
+                  {item.order}
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: '0.875rem',
+                    fontWeight: 'bold',
+                    '@media print': {
+                      fontSize: '0.75rem',
+                    },
+                  }}
+                >
+                  {item.player.name}
+                </Typography>
+              </Box>
+            ))}
+            {getBattingOrderWithPlayers().length === 0 && (
+              <Box
+                sx={{
+                  p: 2,
+                  textAlign: 'center',
+                  fontStyle: 'italic',
+                  color: 'text.secondary',
+                  fontSize: '0.875rem',
+                  '@media print': {
+                    p: 1,
+                    fontSize: '0.75rem',
+                  },
+                }}
+              >
+                No batting order set
+              </Box>
+            )}
+          </Box>
+        </Box>
 
         {/* Baseball Diamond Layout */}
         <Box 
