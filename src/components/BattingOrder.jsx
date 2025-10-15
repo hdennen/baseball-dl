@@ -13,7 +13,8 @@ import {
   Add as AddIcon,
   Remove as RemoveIcon,
   Shuffle as ShuffleIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  PlaylistAdd as PlaylistAddIcon
 } from '@mui/icons-material';
 import {
   DndContext,
@@ -203,6 +204,11 @@ function BattingOrder() {
     setBattingOrder([]);
   };
 
+  const handleAddAllPlayers = () => {
+    const allPlayerIds = players.map(player => player.id);
+    setBattingOrder(allPlayerIds);
+  };
+
   return (
     <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -210,6 +216,15 @@ function BattingOrder() {
           Batting Order
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            startIcon={<PlaylistAddIcon />}
+            onClick={handleAddAllPlayers}
+            disabled={players.length === 0}
+            size="small"
+          >
+            Add All
+          </Button>
           <Button
             variant="outlined"
             startIcon={<ShuffleIcon />}
