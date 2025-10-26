@@ -1,19 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { generatePositionsForAllInnings, generateCurrentInningPositions, getActivePositions as getActivePositionsFromService, POSITIONS } from '../services/PositionGeneratorService';
 
-const POSITIONS = [
-  'pitcher',
-  'catcher',
-  'first-base',
-  'second-base',
-  'shortstop',
-  'third-base',
-  'left-field',
-  'center-left-field',
-  'center-field',
-  'center-right-field',
-  'right-field',
-];
 
 const useBaseballStore = create(
   persist(
@@ -185,22 +173,11 @@ const useBaseballStore = create(
       
       const newInnings = [...state.innings];
       const currentInning = newInnings[state.currentInningIndex];
-      const shuffledPlayers = [...state.players].sort(() => Math.random() - 0.5);
       
-      // Get active positions based on field config
-      const activePositions = get().getActivePositions(state.currentInningIndex);
+      // Use the service to generate positions for the current inning
+      const generatedInning = generateCurrentInningPositions(state.players, currentInning.fieldConfig);
       
-      const newPositions = {};
-      activePositions.forEach((position, index) => {
-        if (index < shuffledPlayers.length) {
-          newPositions[position] = shuffledPlayers[index].id;
-        }
-      });
-      
-      newInnings[state.currentInningIndex] = { 
-        positions: newPositions,
-        fieldConfig: currentInning.fieldConfig
-      };
+      newInnings[state.currentInningIndex] = generatedInning;
       
       return { innings: newInnings };
     });
@@ -232,13 +209,7 @@ const useBaseballStore = create(
       return POSITIONS; // Return all positions if no config
     }
     
-    return POSITIONS.filter((position) => {
-      // Only filter the configurable positions
-      if (position === 'center-field' || position === 'center-left-field' || position === 'center-right-field') {
-        return inning.fieldConfig[position] === true;
-      }
-      return true; // All other positions are always active
-    });
+    return getActivePositionsFromService(inning.fieldConfig);
   },
   
   // Toggle a field position (and move players to bench if disabled)
@@ -328,34 +299,8 @@ const useBaseballStore = create(
             'center-right-field': false,
           };
 
-      // Generate new innings array
-      const newInnings = [];
-      
-      // Get active positions based on field config
-      const activePositions = POSITIONS.filter((position) => {
-        if (position === 'center-field' || position === 'center-left-field' || position === 'center-right-field') {
-          return fieldConfig[position] === true;
-        }
-        return true; // All other positions are always active
-      });
-
-      for (let i = 0; i < inningCount; i++) {
-        // Shuffle players for each inning to get different lineups
-        const shuffledPlayers = [...state.players].sort(() => Math.random() - 0.5);
-        const positions = {};
-        
-        // Assign players to active positions
-        activePositions.forEach((position, index) => {
-          if (index < shuffledPlayers.length) {
-            positions[position] = shuffledPlayers[index].id;
-          }
-        });
-
-        newInnings.push({
-          positions,
-          fieldConfig: { ...fieldConfig }
-        });
-      }
+      // Use the service to generate all innings
+      const newInnings = generatePositionsForAllInnings(state.players, inningCount, fieldConfig);
 
       return {
         innings: newInnings,
