@@ -24,6 +24,7 @@ import {
   Close as CloseIcon,
   MoreVert as MoreIcon,
   DragIndicator as DragIcon,
+  AutoAwesome as GenerateIcon,
 } from '@mui/icons-material';
 import {
   DndContext,
@@ -39,6 +40,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import useBaseballStore from '../store/useBaseballStore';
+import GeneratePositionsModal from './GeneratePositionsModal';
 
 function SortableTab({ index, isActive, onClick, onDelete, label }) {
   const {
@@ -127,6 +129,7 @@ function InningManager() {
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [generateModalOpen, setGenerateModalOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -212,6 +215,18 @@ function InningManager() {
             </Tooltip>
           </ButtonGroup>
           
+          <Tooltip title="Generate Positions for All Innings">
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<GenerateIcon />}
+              onClick={() => setGenerateModalOpen(true)}
+              sx={{ ml: 1 }}
+            >
+              Generate
+            </Button>
+          </Tooltip>
+          
           <Tooltip title="More Options">
             <IconButton size="small" onClick={handleMenuOpen}>
               <MoreIcon />
@@ -253,6 +268,11 @@ function InningManager() {
           </Button>
         </DialogActions>
       </Dialog>
+      
+      <GeneratePositionsModal 
+        open={generateModalOpen} 
+        onClose={() => setGenerateModalOpen(false)} 
+      />
     </Box>
   );
 }

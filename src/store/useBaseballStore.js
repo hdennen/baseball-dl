@@ -308,6 +308,62 @@ const useBaseballStore = create(
     })).filter(item => item.player); // Only include players that still exist
   },
 
+  // Generate positions for all innings
+  generatePositionsForAllInnings: async (inningCount, useCurrentFieldConfig = true) => {
+    set((state) => {
+      if (state.players.length === 0) {
+        throw new Error('No players available to assign positions');
+      }
+
+      // Get the field config to use
+      const fieldConfig = useCurrentFieldConfig 
+        ? state.innings[state.currentInningIndex]?.fieldConfig || {
+            'center-field': true,
+            'center-left-field': false,
+            'center-right-field': false,
+          }
+        : {
+            'center-field': true,
+            'center-left-field': false,
+            'center-right-field': false,
+          };
+
+      // Generate new innings array
+      const newInnings = [];
+      
+      // Get active positions based on field config
+      const activePositions = POSITIONS.filter((position) => {
+        if (position === 'center-field' || position === 'center-left-field' || position === 'center-right-field') {
+          return fieldConfig[position] === true;
+        }
+        return true; // All other positions are always active
+      });
+
+      for (let i = 0; i < inningCount; i++) {
+        // Shuffle players for each inning to get different lineups
+        const shuffledPlayers = [...state.players].sort(() => Math.random() - 0.5);
+        const positions = {};
+        
+        // Assign players to active positions
+        activePositions.forEach((position, index) => {
+          if (index < shuffledPlayers.length) {
+            positions[position] = shuffledPlayers[index].id;
+          }
+        });
+
+        newInnings.push({
+          positions,
+          fieldConfig: { ...fieldConfig }
+        });
+      }
+
+      return {
+        innings: newInnings,
+        currentInningIndex: 0, // Reset to first inning
+      };
+    });
+  },
+
   // Clear all data and reset to initial state
   clearAllData: () => {
     set({
