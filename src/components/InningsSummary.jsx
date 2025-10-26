@@ -190,6 +190,30 @@ function InningsSummary() {
             },
           }}
         >
+          {/* Web Address - Upper Right (Print Only) */}
+          <Box
+            sx={{
+              display: 'none',
+              '@media print': {
+                display: 'block',
+                position: 'absolute',
+                top: 0,
+                right: 0,
+              },
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                '@media print': {
+                  fontSize: '1rem',
+                  color: 'black',
+                },
+              }}
+            >
+              LineupManager.app
+            </Typography>
+          </Box>
           {/* Batting Order */}
           <Box 
             sx={{ 
