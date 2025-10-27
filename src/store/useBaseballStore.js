@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { generatePositionsForAllInnings, generateCurrentInningPositions, getActivePositions as getActivePositionsFromService, POSITIONS } from '../services/PositionGeneratorService';
+import { generatePositionsForAllInnings, generateCurrentInningPositions, getActivePositions as getActivePositionsFromService, fillRemainingPositions as fillRemainingPositionsService, POSITIONS } from '../services/PositionGeneratorService';
 
 
 const useBaseballStore = create(
@@ -190,33 +190,16 @@ const useBaseballStore = create(
       
       const newInnings = [...state.innings];
       const currentInning = newInnings[state.currentInningIndex];
-      const activePositions = getActivePositionsFromService(currentInning.fieldConfig);
       
-      // Find positions that are currently empty
-      const emptyPositions = activePositions.filter(
-        position => !currentInning.positions[position]
+      // Use the service to fill remaining positions
+      const newPositions = fillRemainingPositionsService(
+        currentInning.positions,
+        state.players,
+        currentInning.fieldConfig
       );
       
-      if (emptyPositions.length === 0) return state; // No empty positions to fill
-      
-      // Find players who are not currently assigned to any position
-      const assignedPlayerIds = new Set(Object.values(currentInning.positions));
-      const availablePlayers = state.players.filter(
-        player => !assignedPlayerIds.has(player.id)
-      );
-      
-      if (availablePlayers.length === 0) return state; // No available players
-      
-      // Shuffle available players
-      const shuffledAvailablePlayers = [...availablePlayers].sort(() => Math.random() - 0.5);
-      
-      // Assign available players to empty positions
-      const newPositions = { ...currentInning.positions };
-      emptyPositions.forEach((position, index) => {
-        if (index < shuffledAvailablePlayers.length) {
-          newPositions[position] = shuffledAvailablePlayers[index].id;
-        }
-      });
+      // If nothing changed, return the same state
+      if (newPositions === currentInning.positions) return state;
       
       newInnings[state.currentInningIndex] = {
         positions: newPositions,

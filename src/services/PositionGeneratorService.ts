@@ -98,4 +98,48 @@ export const generateCurrentInningPositions = (players: Player[], fieldConfig: F
   return generateInningPositions(players, fieldConfig);
 };
 
+/**
+ * Fill only empty positions in an existing position assignment
+ * Preserves existing assignments and only fills positions that are currently empty
+ */
+export const fillRemainingPositions = (
+  currentPositions: Record<string, string>,
+  allPlayers: Player[],
+  fieldConfig: FieldConfig = DEFAULT_FIELD_CONFIG
+): Record<string, string> => {
+  const activePositions = getActivePositions(fieldConfig);
+  
+  // Find positions that are currently empty
+  const emptyPositions = activePositions.filter(
+    position => !currentPositions[position]
+  );
+  
+  if (emptyPositions.length === 0) {
+    return currentPositions; // No empty positions to fill
+  }
+  
+  // Find players who are not currently assigned to any position
+  const assignedPlayerIds = new Set(Object.values(currentPositions));
+  const availablePlayers = allPlayers.filter(
+    player => !assignedPlayerIds.has(player.id)
+  );
+  
+  if (availablePlayers.length === 0) {
+    return currentPositions; // No available players
+  }
+  
+  // Shuffle available players
+  const shuffledAvailablePlayers = shufflePlayers(availablePlayers);
+  
+  // Assign available players to empty positions
+  const newPositions = { ...currentPositions };
+  emptyPositions.forEach((position, index) => {
+    if (index < shuffledAvailablePlayers.length) {
+      newPositions[position] = shuffledAvailablePlayers[index].id;
+    }
+  });
+  
+  return newPositions;
+};
+
 export { POSITIONS, DEFAULT_FIELD_CONFIG };
