@@ -26,6 +26,9 @@ const useBaseballStore = create(
   // Currently selected inning for editing
   currentInningIndex: 0,
   
+  // Show bench indicators in lineup editor
+  showBenchIndicators: true,
+  
   // Add a new player
   addPlayer: (name) => {
     const newPlayer = {
@@ -220,6 +223,29 @@ const useBaseballStore = create(
     return state.players.filter((player) => !assignedPlayerIds.has(player.id));
   },
   
+  // Check if a player was benched in any previous inning (before current inning)
+  wasPlayerBenchedPreviously: (playerId) => {
+    const state = get();
+    const currentIndex = state.currentInningIndex;
+    
+    // Check all previous innings (not including the current one)
+    for (let i = 0; i < currentIndex; i++) {
+      const inning = state.innings[i];
+      const assignedPlayerIds = Object.values(inning.positions);
+      if (!assignedPlayerIds.includes(playerId)) {
+        return true; // Player was benched in this previous inning
+      }
+    }
+    return false;
+  },
+  
+  // Toggle bench indicators visibility
+  toggleBenchIndicators: () => {
+    set((state) => ({
+      showBenchIndicators: !state.showBenchIndicators,
+    }));
+  },
+  
   // Get position label (human readable)
   getPositionLabel: (position) => {
     return position
@@ -350,6 +376,7 @@ const useBaseballStore = create(
         }
       }],
       currentInningIndex: 0,
+      showBenchIndicators: true,
     });
   },
 }),
@@ -362,6 +389,7 @@ const useBaseballStore = create(
         battingOrder: state.battingOrder,
         innings: state.innings,
         currentInningIndex: state.currentInningIndex,
+        showBenchIndicators: state.showBenchIndicators,
       }),
     }
   )

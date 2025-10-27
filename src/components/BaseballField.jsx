@@ -1,5 +1,11 @@
-import { Box, Paper, Typography, Chip, Button, ButtonGroup } from '@mui/material';
-import { Shuffle as ShuffleIcon, PlaylistAdd as FillIcon } from '@mui/icons-material';
+import { Box, Paper, Typography, Chip, Button, ButtonGroup, IconButton, Tooltip } from '@mui/material';
+import { 
+  Shuffle as ShuffleIcon, 
+  PlaylistAdd as FillIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  Circle as CircleIcon
+} from '@mui/icons-material';
 import { useDroppable } from '@dnd-kit/core';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
@@ -77,7 +83,7 @@ function PositionSlot({ position, player }) {
   );
 }
 
-function BenchPlayer({ player, index }) {
+function BenchPlayer({ player, index, showBenchIndicator, wasBenched }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: player.id,
     data: {
@@ -94,7 +100,19 @@ function BenchPlayer({ player, index }) {
   return (
     <Box ref={setNodeRef} style={style} {...listeners} {...attributes}>
       <Chip
-        label={player.name}
+        label={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {player.name}
+            {showBenchIndicator && wasBenched && (
+              <CircleIcon 
+                sx={{ 
+                  fontSize: '0.75rem',
+                  color: 'error.main',
+                }} 
+              />
+            )}
+          </Box>
+        }
         color="warning"
         variant="outlined"
         size="medium"
@@ -107,7 +125,18 @@ function BenchPlayer({ player, index }) {
 }
 
 function BaseballField() {
-  const { innings, currentInningIndex, players, getBenchedPlayers, randomlyAssignPlayers, fillRemainingPositions, getActivePositions } = useBaseballStore();
+  const { 
+    innings, 
+    currentInningIndex, 
+    players, 
+    getBenchedPlayers, 
+    randomlyAssignPlayers, 
+    fillRemainingPositions, 
+    getActivePositions,
+    showBenchIndicators,
+    toggleBenchIndicators,
+    wasPlayerBenchedPreviously
+  } = useBaseballStore();
   
   const currentInning = innings[currentInningIndex] || { positions: {}, fieldConfig: {} };
   const benchedPlayers = getBenchedPlayers(currentInningIndex);
@@ -135,22 +164,33 @@ function BaseballField() {
         <Typography variant="h6" color="text.secondary">
           Field Positions
         </Typography>
-        <ButtonGroup size="small" variant="outlined">
-          <Button
-            startIcon={<ShuffleIcon />}
-            onClick={randomlyAssignPlayers}
-            disabled={players.length === 0}
-          >
-            Random Positions
-          </Button>
-          <Button
-            startIcon={<FillIcon />}
-            onClick={fillRemainingPositions}
-            disabled={players.length === 0 || benchedPlayers.length === 0}
-          >
-            Fill Remaining
-          </Button>
-        </ButtonGroup>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Tooltip title={showBenchIndicators ? 'Hide bench indicators' : 'Show bench indicators'}>
+            <IconButton 
+              size="small" 
+              onClick={toggleBenchIndicators}
+              color={showBenchIndicators ? 'primary' : 'default'}
+            >
+              {showBenchIndicators ? <VisibilityIcon /> : <VisibilityOffIcon />}
+            </IconButton>
+          </Tooltip>
+          <ButtonGroup size="small" variant="outlined">
+            <Button
+              startIcon={<ShuffleIcon />}
+              onClick={randomlyAssignPlayers}
+              disabled={players.length === 0}
+            >
+              Random Positions
+            </Button>
+            <Button
+              startIcon={<FillIcon />}
+              onClick={fillRemainingPositions}
+              disabled={players.length === 0 || benchedPlayers.length === 0}
+            >
+              Fill Remaining
+            </Button>
+          </ButtonGroup>
+        </Box>
       </Box>
       
       <Box sx={{ display: 'flex', gap: 3, maxWidth: 1400, mx: 'auto', alignItems: 'flex-start' }}>
@@ -331,7 +371,13 @@ function BaseballField() {
               </Typography>
             ) : (
               benchedPlayers.map((player, index) => (
-                <BenchPlayer key={player.id} player={player} index={index} />
+                <BenchPlayer 
+                  key={player.id} 
+                  player={player} 
+                  index={index}
+                  showBenchIndicator={showBenchIndicators}
+                  wasBenched={wasPlayerBenchedPreviously(player.id)}
+                />
               ))
             )}
           </Paper>
