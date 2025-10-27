@@ -365,7 +365,7 @@ function InningsSummary() {
             position: 'relative', 
             minHeight: 800, 
             mb: 4,
-            mt: 0,
+            mt: -25,
             borderRadius: 2,
             p: 2,
             '@media print': {
