@@ -253,6 +253,13 @@ function BattingOrder() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
+        <AvailablePlayers
+          players={availablePlayers}
+          onAdd={handleAddPlayer}
+        />
+
+        <Divider sx={{ my: 3 }} />
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
             Current Batting Order
@@ -269,7 +276,7 @@ function BattingOrder() {
               }}
             >
               <Typography variant="body2" color="text.secondary">
-                No players in batting order. Add players from the available players below.
+                No players in batting order. Add players from the available players above.
               </Typography>
             </Box>
           ) : (
@@ -290,13 +297,6 @@ function BattingOrder() {
             </SortableContext>
           )}
         </Box>
-
-        <Divider sx={{ my: 3 }} />
-
-        <AvailablePlayers
-          players={availablePlayers}
-          onAdd={handleAddPlayer}
-        />
       </DndContext>
     </Paper>
   );
