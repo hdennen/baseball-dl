@@ -1,5 +1,5 @@
-import { Box, Paper, Typography, Chip, Button } from '@mui/material';
-import { Shuffle as ShuffleIcon } from '@mui/icons-material';
+import { Box, Paper, Typography, Chip, Button, ButtonGroup } from '@mui/material';
+import { Shuffle as ShuffleIcon, PlaylistAdd as FillIcon } from '@mui/icons-material';
 import { useDroppable } from '@dnd-kit/core';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
@@ -107,7 +107,7 @@ function BenchPlayer({ player, index }) {
 }
 
 function BaseballField() {
-  const { innings, currentInningIndex, players, getBenchedPlayers, randomlyAssignPlayers, getActivePositions } = useBaseballStore();
+  const { innings, currentInningIndex, players, getBenchedPlayers, randomlyAssignPlayers, fillRemainingPositions, getActivePositions } = useBaseballStore();
   
   const currentInning = innings[currentInningIndex] || { positions: {}, fieldConfig: {} };
   const benchedPlayers = getBenchedPlayers(currentInningIndex);
@@ -135,15 +135,22 @@ function BaseballField() {
         <Typography variant="h6" color="text.secondary">
           Field Positions
         </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<ShuffleIcon />}
-          onClick={randomlyAssignPlayers}
-          disabled={players.length === 0}
-          size="small"
-        >
-          Random Positions
-        </Button>
+        <ButtonGroup size="small" variant="outlined">
+          <Button
+            startIcon={<ShuffleIcon />}
+            onClick={randomlyAssignPlayers}
+            disabled={players.length === 0}
+          >
+            Random Positions
+          </Button>
+          <Button
+            startIcon={<FillIcon />}
+            onClick={fillRemainingPositions}
+            disabled={players.length === 0 || benchedPlayers.length === 0}
+          >
+            Fill Remaining
+          </Button>
+        </ButtonGroup>
       </Box>
       
       <Box sx={{ display: 'flex', gap: 3, maxWidth: 1400, mx: 'auto', alignItems: 'flex-start' }}>

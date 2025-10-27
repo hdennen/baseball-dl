@@ -183,6 +183,50 @@ const useBaseballStore = create(
     });
   },
 
+  // Fill only the remaining empty positions in the current inning
+  fillRemainingPositions: () => {
+    set((state) => {
+      if (state.players.length === 0) return state;
+      
+      const newInnings = [...state.innings];
+      const currentInning = newInnings[state.currentInningIndex];
+      const activePositions = getActivePositionsFromService(currentInning.fieldConfig);
+      
+      // Find positions that are currently empty
+      const emptyPositions = activePositions.filter(
+        position => !currentInning.positions[position]
+      );
+      
+      if (emptyPositions.length === 0) return state; // No empty positions to fill
+      
+      // Find players who are not currently assigned to any position
+      const assignedPlayerIds = new Set(Object.values(currentInning.positions));
+      const availablePlayers = state.players.filter(
+        player => !assignedPlayerIds.has(player.id)
+      );
+      
+      if (availablePlayers.length === 0) return state; // No available players
+      
+      // Shuffle available players
+      const shuffledAvailablePlayers = [...availablePlayers].sort(() => Math.random() - 0.5);
+      
+      // Assign available players to empty positions
+      const newPositions = { ...currentInning.positions };
+      emptyPositions.forEach((position, index) => {
+        if (index < shuffledAvailablePlayers.length) {
+          newPositions[position] = shuffledAvailablePlayers[index].id;
+        }
+      });
+      
+      newInnings[state.currentInningIndex] = {
+        positions: newPositions,
+        fieldConfig: currentInning.fieldConfig,
+      };
+      
+      return { innings: newInnings };
+    });
+  },
+
   // Get benched players for a specific inning
   getBenchedPlayers: (inningIndex) => {
     const state = get();
