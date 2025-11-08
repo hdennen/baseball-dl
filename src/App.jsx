@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper } from '@mui/material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import PlayerManagement from './components/PlayerManagement';
@@ -21,9 +22,30 @@ const theme = createTheme({
 });
 
 function App() {
-  const [currentView, setCurrentView] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeId, setActiveId] = useState(null);
   const { assignPosition, players } = useBaseballStore();
+
+  // Map routes to tab indices
+  const routeToTabIndex = {
+    '/': 0,
+    '/batting': 0,
+    '/lineup': 1,
+    '/innings': 2,
+  };
+
+  // Get current tab based on route
+  const getCurrentTab = () => {
+    return routeToTabIndex[location.pathname] ?? 0;
+  };
+
+  const [currentView, setCurrentView] = useState(getCurrentTab());
+
+  // Sync tab with route changes
+  useEffect(() => {
+    setCurrentView(getCurrentTab());
+  }, [location.pathname]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -105,7 +127,12 @@ function App() {
           <Tabs 
             className="no-print"
             value={currentView} 
-            onChange={(e, newValue) => setCurrentView(newValue)}
+            onChange={(e, newValue) => {
+              setCurrentView(newValue);
+              // Navigate to corresponding route
+              const routes = ['/batting', '/lineup', '/innings'];
+              navigate(routes[newValue]);
+            }}
             centered
             sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
           >
@@ -114,26 +141,25 @@ function App() {
             <Tab label="All Innings Summary" />
           </Tabs>
 
-          {currentView === 0 && (
-            <Box>
-              <PlayerManagement />
-              <BattingOrder />
-            </Box>
-          )}
-
-          {currentView === 1 && (
-            <Box>
-              <Paper elevation={3} sx={{ overflow: 'hidden' }}>
-                <InningManager />
-                <FieldConfiguration />
-                <BaseballField />
-              </Paper>
-            </Box>
-          )}
-
-          {currentView === 2 && (
-            <InningsSummary />
-          )}
+          <Routes>
+            <Route path="/" element={<Navigate to="/batting" replace />} />
+            <Route path="/batting" element={
+              <Box>
+                <PlayerManagement />
+                <BattingOrder />
+              </Box>
+            } />
+            <Route path="/lineup" element={
+              <Box>
+                <Paper elevation={3} sx={{ overflow: 'hidden' }}>
+                  <InningManager />
+                  <FieldConfiguration />
+                  <BaseballField />
+                </Paper>
+              </Box>
+            } />
+            <Route path="/innings" element={<InningsSummary />} />
+          </Routes>
         </Container>
         <DragOverlay>
           {activeId ? (
