@@ -47,6 +47,16 @@ function App() {
     setCurrentView(getCurrentTab());
   }, [location.pathname]);
 
+  // Track page views with Google Analytics
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: location.pathname,
+        page_title: document.title,
+      });
+    }
+  }, [location.pathname]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
