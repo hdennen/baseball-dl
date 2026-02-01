@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
-import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper } from '@mui/material';
+import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button, CircularProgress } from '@mui/material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { useStytchUser, useStytch } from '@stytch/react';
 import PlayerManagement from './components/PlayerManagement';
 import BattingOrder from './components/BattingOrder';
 import BaseballField from './components/BaseballField';
 import InningManager from './components/InningManager';
 import InningsSummary from './components/InningsSummary';
 import FieldConfiguration from './components/FieldConfiguration';
+import Login from './components/Login';
+import Authenticate from './components/Authenticate';
 import useBaseballStore from './store/useBaseballStore';
 
 const theme = createTheme({
@@ -26,6 +29,9 @@ function App() {
   const location = useLocation();
   const [activeId, setActiveId] = useState(null);
   const { assignPosition, players } = useBaseballStore();
+  const { user, isInitialized } = useStytchUser();
+  const stytch = useStytch();
+
 
   // Map routes to tab indices
   const routeToTabIndex = {
@@ -126,8 +132,27 @@ function App() {
           }}
         >
           <Box className="no-print" sx={{ mb: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+              {user ? (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => stytch.session.revoke()}
+                >
+                  Logout
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => navigate('/login')}
+                >
+                  Sign in
+                </Button>
+              )}
+            </Box>
             <Typography variant="h3" component="h1" gutterBottom align="center">
-              ⚾ Baseball Defensive Lineup Manager
+              Baseball Defensive Lineup Manager
             </Typography>
             <Typography variant="subtitle1" align="center" color="text.secondary">
               Create and manage your team's defensive positions for each inning
@@ -152,6 +177,8 @@ function App() {
           </Tabs>
 
           <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/authenticate" element={<Authenticate />} />
             <Route path="/" element={<Navigate to="/batting" replace />} />
             <Route path="/batting" element={
               <Box>
