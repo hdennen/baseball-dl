@@ -9,6 +9,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import GameContextHeader from './GameContextHeader';
 
 // Position key to abbreviation mapping
 const positionLabels = {
@@ -25,7 +26,7 @@ const positionLabels = {
   'right-field': 'RF',
 };
 
-function BattingOrderView({ innings, getBattingOrderWithPlayers, getBenchedPlayers }) {
+function BattingOrderView({ innings, getBattingOrderWithPlayers, getBenchedPlayers, gameContext }) {
   const battingOrder = getBattingOrderWithPlayers();
 
   // Find position for a player in a specific inning
@@ -69,6 +70,7 @@ function BattingOrderView({ innings, getBattingOrderWithPlayers, getBenchedPlaye
         <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1, '@media print': { mb: 0.5 } }}>
           LINEUP CARD - BATTING ORDER VIEW
         </Typography>
+        <GameContextHeader gameContext={gameContext} />
         <Typography variant="body2" color="text.secondary" sx={{ '@media print': { display: 'none' } }}>
           Each row shows a player's defensive position by inning
         </Typography>

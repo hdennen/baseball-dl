@@ -9,6 +9,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import GameContextHeader from './GameContextHeader';
 
 // Positions in fielding order (battery, infield, outfield)
 const positions = [
@@ -25,7 +26,7 @@ const positions = [
   { key: 'right-field', label: 'RF', fullName: 'Right Field' },
 ];
 
-function PositionView({ innings, getPlayerName, getBenchedPlayers }) {
+function PositionView({ innings, getPlayerName, getBenchedPlayers, gameContext }) {
   // Check if a position is used in any inning
   const isPositionUsedInAnyInning = (positionKey) => {
     if (positionKey !== 'center-field' && positionKey !== 'center-left-field' && positionKey !== 'center-right-field') {
@@ -77,6 +78,7 @@ function PositionView({ innings, getPlayerName, getBenchedPlayers }) {
         <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1, '@media print': { mb: 0 } }}>
           LINEUP CARD - BY POSITION
         </Typography>
+        <GameContextHeader gameContext={gameContext} />
         <Typography variant="body2" color="text.secondary" sx={{ '@media print': { display: 'none' } }}>
           Quick reference: Who plays each position by inning
         </Typography>

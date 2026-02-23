@@ -14,7 +14,7 @@ import PositionView from './print-layouts/PositionView';
 import BoxScoreView from './print-layouts/BoxScoreView';
 
 function InningsSummary() {
-  const { innings, players, getBenchedPlayers, getBattingOrderWithPlayers } = useBaseballStore();
+  const { innings, players, getBenchedPlayers, getBattingOrderWithPlayers, gameContext } = useBaseballStore();
   const [layoutType, setLayoutType] = useState('field');
 
   // Get player name by ID
@@ -47,6 +47,7 @@ function InningsSummary() {
     getPlayerName,
     getBenchedPlayers,
     getBattingOrderWithPlayers,
+    gameContext,
   };
 
   return (

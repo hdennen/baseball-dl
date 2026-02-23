@@ -9,6 +9,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import GameContextHeader from './GameContextHeader';
 
 // Position configurations for the lineup card
 const positions = [
@@ -25,7 +26,7 @@ const positions = [
   { key: 'catcher', label: 'C', section: 'battery' },
 ];
 
-function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderWithPlayers }) {
+function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderWithPlayers, gameContext }) {
   // Check if a position is active in ANY inning (for display purposes)
   const isPositionUsedInAnyInning = (positionKey) => {
     // Always show non-configurable positions
@@ -139,7 +140,8 @@ function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderW
       <Box
         sx={{
           display: 'flex',
-          gap: 3,
+          flexDirection: 'column',
+          gap: 1,
           mb: 3,
           mt: 0,
           '@media print': {
@@ -149,10 +151,12 @@ function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderW
             right: 0,
             zIndex: 10,
             mb: 0,
-            mt: 2,
+            mt: 1,
           },
         }}
       >
+        <GameContextHeader gameContext={gameContext} />
+        <Box sx={{ display: 'flex', gap: 3 }}>
         {/* Web Address - Upper Right (Print Only) */}
         <Box
           sx={{
@@ -319,6 +323,7 @@ function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderW
               </TableBody>
             </Table>
           </TableContainer>
+        </Box>
         </Box>
       </Box>
 

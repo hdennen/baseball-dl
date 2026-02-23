@@ -26,7 +26,20 @@ const positionLabels = {
   'right-field': 'RF',
 };
 
-function BoxScoreView({ innings, getBattingOrderWithPlayers, getBenchedPlayers }) {
+const formatDate = (dateStr) => {
+  if (!dateStr) return null;
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const formatTime = (timeStr) => {
+  if (!timeStr) return null;
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  return `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${ampm}`;
+};
+
+function BoxScoreView({ innings, getBattingOrderWithPlayers, getBenchedPlayers, gameContext }) {
   const battingOrder = getBattingOrderWithPlayers();
 
   // Find position for a player in a specific inning
@@ -82,27 +95,42 @@ function BoxScoreView({ innings, getBattingOrderWithPlayers, getBenchedPlayers }
         <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
           OFFICIAL LINEUP CARD
         </Typography>
-        <Box sx={{ display: 'flex', gap: 3 }}>
+        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Date:</Typography>
-            <Box
-              sx={{
-                borderBottom: '1px solid black',
-                minWidth: 100,
-                height: 20,
-              }}
-            />
+            {gameContext?.date ? (
+              <Typography variant="body2">{formatDate(gameContext.date)}{gameContext.time ? ` · ${formatTime(gameContext.time)}` : ''}</Typography>
+            ) : (
+              <Box sx={{ borderBottom: '1px solid black', minWidth: 100, height: 20 }} />
+            )}
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>vs:</Typography>
-            <Box
-              sx={{
-                borderBottom: '1px solid black',
-                minWidth: 120,
-                height: 20,
-              }}
-            />
+            {gameContext?.opponent ? (
+              <Typography variant="body2">{gameContext.opponent}</Typography>
+            ) : (
+              <Box sx={{ borderBottom: '1px solid black', minWidth: 120, height: 20 }} />
+            )}
           </Box>
+          {gameContext?.location && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>@</Typography>
+              <Typography variant="body2">{gameContext.location}</Typography>
+            </Box>
+          )}
+          {gameContext?.side && (
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                px: 1,
+                border: '1px solid black',
+                alignSelf: 'center',
+              }}
+            >
+              {gameContext.side.toUpperCase()}
+            </Typography>
+          )}
         </Box>
       </Box>
 
@@ -356,29 +384,23 @@ function BoxScoreView({ innings, getBattingOrderWithPlayers, getBenchedPlayers }
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1, '@media print': { mb: 0.5 } }}>
           NOTES
         </Typography>
-        <Box
-          sx={{
-            borderBottom: '1px solid grey',
-            height: 24,
-            mb: 1,
-            '@media print': { height: 16, mb: 0.5 },
-          }}
-        />
-        <Box
-          sx={{
-            borderBottom: '1px solid grey',
-            height: 24,
-            mb: 1,
-            '@media print': { height: 16, mb: 0.5 },
-          }}
-        />
-        <Box
-          sx={{
-            borderBottom: '1px solid grey',
-            height: 24,
-            '@media print': { height: 16 },
-          }}
-        />
+        {gameContext?.notes ? (
+          <Typography
+            variant="body2"
+            sx={{
+              whiteSpace: 'pre-wrap',
+              '@media print': { fontSize: '0.65rem' },
+            }}
+          >
+            {gameContext.notes}
+          </Typography>
+        ) : (
+          <>
+            <Box sx={{ borderBottom: '1px solid grey', height: 24, mb: 1, '@media print': { height: 16, mb: 0.5 } }} />
+            <Box sx={{ borderBottom: '1px solid grey', height: 24, mb: 1, '@media print': { height: 16, mb: 0.5 } }} />
+            <Box sx={{ borderBottom: '1px solid grey', height: 24, '@media print': { height: 16 } }} />
+          </>
+        )}
       </Box>
 
       {/* Footer */}
