@@ -4,6 +4,7 @@ import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useStytchUser, useStytch } from '@stytch/react';
 import PlayerManagement from './components/PlayerManagement';
+import GameContext from './components/GameContext';
 import BattingOrder from './components/BattingOrder';
 import BaseballField from './components/BaseballField';
 import InningManager from './components/InningManager';
@@ -182,6 +183,7 @@ function App() {
             <Route path="/" element={<Navigate to="/batting" replace />} />
             <Route path="/batting" element={
               <Box>
+                <GameContext />
                 <PlayerManagement />
                 <BattingOrder />
               </Box>

@@ -28,6 +28,16 @@ const useBaseballStore = create(
   
   // Show bench indicators in lineup editor
   showBenchIndicators: true,
+
+  // Game context metadata (all optional, coach-owned)
+  gameContext: {
+    date: null,
+    time: null,
+    opponent: null,
+    location: null,
+    side: null, // 'home' | 'away' | null
+    notes: null,
+  },
   
   // Add a new player
   addPlayer: (name) => {
@@ -362,12 +372,19 @@ const useBaseballStore = create(
     });
   },
 
+  // Update game context fields (partial update)
+  updateGameContext: (fields) => {
+    set((state) => ({
+      gameContext: { ...state.gameContext, ...fields },
+    }));
+  },
+
   // Clear all data and reset to initial state
   clearAllData: () => {
     set({
       players: [],
       battingOrder: [],
-      innings: [{ 
+      innings: [{
         positions: {},
         fieldConfig: {
           'center-field': true,
@@ -377,6 +394,14 @@ const useBaseballStore = create(
       }],
       currentInningIndex: 0,
       showBenchIndicators: true,
+      gameContext: {
+        date: null,
+        time: null,
+        opponent: null,
+        location: null,
+        side: null,
+        notes: null,
+      },
     });
   },
 }),
@@ -390,6 +415,7 @@ const useBaseballStore = create(
         innings: state.innings,
         currentInningIndex: state.currentInningIndex,
         showBenchIndicators: state.showBenchIndicators,
+        gameContext: state.gameContext,
       }),
     }
   )
