@@ -45,9 +45,18 @@ Partial update action — pass only the fields you want to change. Null means "n
 - `GameContextHeader` shared component: renders a compact `·`-separated one-liner of set fields only; notes on second line; returns null if nothing is set
 - `BoxScoreView` has special handling: Date/vs header uses real values with blank-underline fallbacks; Notes section shows actual text or blank ruled lines for hand-writing
 
+## Monorepo Structure (Feb 2026)
+npm workspaces monorepo with three packages:
+- `packages/web/` — React SPA (Vite + React 18 + MUI + Zustand)
+- `packages/api/` — Backend API (scaffold only, not yet implemented)
+- `packages/shared/` — Shared TypeScript types (`Player`, `Inning`, `GameContext`, etc.) imported as `@baseball-dl/shared`
+
+The `BaseballStore` interface (Zustand-specific) stays in `packages/web/src/types/index.ts`.
+
 ## Files Reference
-- `src/store/useBaseballStore.js` — single Zustand store, all state + actions
-- `src/components/GameContext.jsx` — Accordion form for editing gameContext
-- `src/components/print-layouts/GameContextHeader.jsx` — shared read-only display
-- `src/components/InningsSummary.jsx` — parent for all print views; owns layoutProps
-- `src/components/print-layouts/` — BoxScoreView, BattingOrderView, PositionView, FieldView
+- `packages/web/src/store/useBaseballStore.ts` — single Zustand store, all state + actions
+- `packages/web/src/components/GameContext.jsx` — Accordion form for editing gameContext
+- `packages/web/src/components/print-layouts/GameContextHeader.jsx` — shared read-only display
+- `packages/web/src/components/InningsSummary.jsx` — parent for all print views; owns layoutProps
+- `packages/web/src/components/print-layouts/` — BoxScoreView, BattingOrderView, PositionView, FieldView
+- `packages/shared/src/index.ts` — shared domain types used by both web and api

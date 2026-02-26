@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { generatePositionsForAllInnings, generateCurrentInningPositions, getActivePositions as getActivePositionsFromService, fillRemainingPositions as fillRemainingPositionsService, POSITIONS } from '../services/PositionGeneratorService';
-import type { BaseballStore, Player, FieldConfig, GameContext, BattingOrderEntry, Position } from '../types/index';
+import type { Player, FieldConfig, GameContext, BattingOrderEntry, Position } from '@baseball-dl/shared';
+import type { BaseballStore } from '../types/index';
 
 const DEFAULT_FIELD_CONFIG: FieldConfig = {
   'center-field': true,

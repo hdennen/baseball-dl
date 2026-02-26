@@ -1,0 +1,14 @@
+{
+  "name": "@baseball-dl/api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'API not yet implemented'",
+    "build": "echo 'API not yet implemented'",
+    "start": "echo 'API not yet implemented'"
+  },
+  "dependencies": {
+    "@baseball-dl/shared": "*"
+  }
+}

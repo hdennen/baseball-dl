@@ -15,6 +15,7 @@ loglevel.log*
 # Dependencies
 node_modules
 dist
+packages/*/dist
 dist-ssr
 *.local
 

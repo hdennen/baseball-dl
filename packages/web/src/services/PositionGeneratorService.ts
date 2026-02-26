@@ -2,7 +2,7 @@
  * Service for generating baseball position assignments
  */
 
-import type { Position, FieldConfig, Player, PositionAssignment } from '../types/index.js';
+import type { Position, FieldConfig, Player, PositionAssignment } from '@baseball-dl/shared';
 
 const POSITIONS: Position[] = [
   'pitcher',
