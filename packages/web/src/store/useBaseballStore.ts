@@ -52,6 +52,28 @@ const useBaseballStore = create<BaseballStore>()(
     set({ players });
   },
 
+  migrateToTeam: (teamId: string, idMap: Record<string, string>) => {
+    set((state) => {
+      const remap = (id: string) => idMap[id] ?? id;
+
+      return {
+        currentTeamId: teamId,
+        players: state.players.map((p) => ({
+          ...p,
+          id: remap(p.id),
+        })),
+        battingOrder: state.battingOrder.map(remap),
+        unavailablePlayers: state.unavailablePlayers.map(remap),
+        innings: state.innings.map((inning) => ({
+          ...inning,
+          positions: Object.fromEntries(
+            Object.entries(inning.positions).map(([pos, pid]) => [pos, remap(pid)])
+          ),
+        })),
+      };
+    });
+  },
+
   addPlayer: (name: string) => {
     const newPlayer = {
       id: `player-${Date.now()}-${Math.random()}`,

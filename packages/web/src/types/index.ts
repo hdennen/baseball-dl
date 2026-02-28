@@ -30,6 +30,7 @@ export interface BaseballStore {
   removePlayer: (playerId: string) => void;
   setCurrentTeam: (teamId: string | null) => void;
   loadTeamPlayers: (players: Player[]) => void;
+  migrateToTeam: (teamId: string, idMap: Record<string, string>) => void;
 
   assignPosition: (position: string, playerId: string | null) => void;
   randomlyAssignPlayers: () => void;

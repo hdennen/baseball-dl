@@ -1,4 +1,17 @@
-import { Box, Paper, Typography, Button, Alert, CircularProgress } from '@mui/material';
+import { useState } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  Alert,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from '@mui/material';
 import { useMutation } from '@apollo/client/react';
 import { useStytchUser } from '@stytch/react';
 import { useNavigate } from 'react-router-dom';
@@ -6,21 +19,89 @@ import TeamSelector from './TeamSelector';
 import PlayerManagement from '../PlayerManagement';
 import { useTeamSync } from '../../hooks/useTeamSync';
 import useBaseballStore from '../../store/useBaseballStore';
-import { CREATE_PLAYER_ON_TEAM, REMOVE_PLAYER_FROM_TEAM, TEAM_PLAYERS } from '../../graphql/operations';
+import {
+  CREATE_PLAYER_ON_TEAM,
+  REMOVE_PLAYER_FROM_TEAM,
+  TEAM_PLAYERS,
+} from '../../graphql/operations';
+import type { Team, TeamPlayer } from '@baseball-dl/shared';
 
 function TeamManagement() {
   const { user } = useStytchUser();
   const navigate = useNavigate();
-  const { currentTeamId, players } = useBaseballStore();
+  const {
+    currentTeamId,
+    players,
+    battingOrder,
+    innings,
+    setCurrentTeam,
+    migrateToTeam,
+  } = useBaseballStore();
   const { loading: syncLoading, error: syncError } = useTeamSync();
 
-  const [createPlayer] = useMutation(CREATE_PLAYER_ON_TEAM, {
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [pendingTeam, setPendingTeam] = useState<Team | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  const [createPlayer] = useMutation<{ createPlayerOnTeam: TeamPlayer }>(CREATE_PLAYER_ON_TEAM, {
     refetchQueries: [{ query: TEAM_PLAYERS, variables: { teamId: currentTeamId } }],
   });
 
   const [removePlayer] = useMutation(REMOVE_PLAYER_FROM_TEAM, {
     refetchQueries: [{ query: TEAM_PLAYERS, variables: { teamId: currentTeamId } }],
   });
+
+  const hasLocalData = () => {
+    if (currentTeamId) return false;
+    return players.length > 0;
+  };
+
+  const handleTeamSelected = (teamId: string | null) => {
+    setCurrentTeam(teamId);
+  };
+
+  const handleTeamCreated = (team: Team) => {
+    if (hasLocalData()) {
+      setPendingTeam(team);
+      setImportDialogOpen(true);
+    } else {
+      setCurrentTeam(team.id);
+    }
+  };
+
+  const handleImportAccepted = async () => {
+    if (!pendingTeam) return;
+    setImporting(true);
+
+    try {
+      const idMap: Record<string, string> = {};
+
+      for (const player of players) {
+        const result = await createPlayer({
+          variables: { teamId: pendingTeam.id, name: player.name },
+          refetchQueries: [],
+        });
+        const serverPlayer = result.data?.createPlayerOnTeam;
+        if (serverPlayer) {
+          idMap[player.id] = serverPlayer.id;
+        }
+      }
+
+      migrateToTeam(pendingTeam.id, idMap);
+    } finally {
+      setImporting(false);
+      setImportDialogOpen(false);
+      setPendingTeam(null);
+    }
+  };
+
+  const handleImportDeclined = () => {
+    if (pendingTeam) {
+      setCurrentTeam(pendingTeam.id);
+    }
+    setImportDialogOpen(false);
+    setPendingTeam(null);
+  };
 
   const handleAddPlayer = async (name: string) => {
     if (!currentTeamId) return;
@@ -50,9 +131,30 @@ function TeamManagement() {
     );
   }
 
+  const localDataSummary = () => {
+    const parts: string[] = [];
+    parts.push(`${players.length} player${players.length !== 1 ? 's' : ''}`);
+    if (battingOrder.length > 0) {
+      parts.push(`a batting order`);
+    }
+    const inningsWithPositions = innings.filter(
+      (inn) => Object.keys(inn.positions).length > 0
+    ).length;
+    if (inningsWithPositions > 0) {
+      parts.push(
+        `${inningsWithPositions} inning${inningsWithPositions !== 1 ? 's' : ''} with position assignments`
+      );
+    }
+    return parts.join(', ');
+  };
+
   return (
     <Box>
-      <TeamSelector />
+      <TeamSelector
+        currentTeamId={currentTeamId}
+        onTeamSelected={handleTeamSelected}
+        onTeamCreated={handleTeamCreated}
+      />
 
       {currentTeamId && (
         <>
@@ -63,7 +165,10 @@ function TeamManagement() {
           )}
 
           {syncLoading && players.length === 0 ? (
-            <Paper elevation={2} sx={{ p: 3, mb: 3, display: 'flex', justifyContent: 'center' }}>
+            <Paper
+              elevation={2}
+              sx={{ p: 3, mb: 3, display: 'flex', justifyContent: 'center' }}
+            >
               <CircularProgress size={24} />
             </Paper>
           ) : (
@@ -85,6 +190,44 @@ function TeamManagement() {
           </Typography>
         </Paper>
       )}
+
+      <Dialog
+        open={importDialogOpen}
+        onClose={() => {}}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Import Existing Players?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You currently have {localDataSummary()} set up locally. Would you
+            like to import them into <strong>{pendingTeam?.name}</strong>?
+          </DialogContentText>
+          <DialogContentText sx={{ mt: 1 }}>
+            If you choose not to import, your current lineup data will be
+            cleared and you can start fresh with the new team.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleImportDeclined} disabled={importing}>
+            Start Fresh
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleImportAccepted}
+            disabled={importing}
+          >
+            {importing ? (
+              <>
+                <CircularProgress size={18} sx={{ mr: 1 }} />
+                Importing...
+              </>
+            ) : (
+              'Import Players'
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

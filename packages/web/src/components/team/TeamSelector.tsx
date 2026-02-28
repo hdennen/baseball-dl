@@ -19,11 +19,15 @@ import {
 import { Add as AddIcon } from '@mui/icons-material';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { MY_TEAMS, CREATE_TEAM } from '../../graphql/operations';
-import useBaseballStore from '../../store/useBaseballStore';
 import type { Team } from '@baseball-dl/shared';
 
-function TeamSelector() {
-  const { currentTeamId, setCurrentTeam } = useBaseballStore();
+interface TeamSelectorProps {
+  currentTeamId: string | null;
+  onTeamSelected: (teamId: string | null) => void;
+  onTeamCreated: (team: Team) => void;
+}
+
+function TeamSelector({ currentTeamId, onTeamSelected, onTeamCreated }: TeamSelectorProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
 
@@ -32,18 +36,14 @@ function TeamSelector() {
   const [createTeam, { loading: creating }] = useMutation<{ createTeam: Team }>(CREATE_TEAM, {
     refetchQueries: [{ query: MY_TEAMS }],
     onCompleted: (result) => {
-      setCurrentTeam(result.createTeam.id);
+      onTeamCreated(result.createTeam);
       setCreateDialogOpen(false);
       setNewTeamName('');
     },
   });
 
   const handleTeamChange = (teamId: string) => {
-    if (teamId === '') {
-      setCurrentTeam(null);
-    } else {
-      setCurrentTeam(teamId);
-    }
+    onTeamSelected(teamId === '' ? null : teamId);
   };
 
   const handleCreateTeam = () => {
