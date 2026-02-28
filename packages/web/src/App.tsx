@@ -136,13 +136,18 @@ function App() {
           <Box className="no-print" sx={{ mb: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
               {user ? (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => stytch.session.revoke()}
-                >
-                  Logout
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {user.emails?.[0]?.email}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => stytch.session.revoke()}
+                  >
+                    Logout
+                  </Button>
+                </Box>
               ) : (
                 <Button
                   variant="outlined"
