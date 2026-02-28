@@ -6,8 +6,7 @@ declare global {
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
-import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button, Alert } from '@mui/material';
-import { History as HistoryIcon } from '@mui/icons-material';
+import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button } from '@mui/material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import { useStytchUser, useStytch } from '@stytch/react';
@@ -21,8 +20,7 @@ import FieldConfiguration from './components/FieldConfiguration';
 import Login from './components/Login';
 import Authenticate from './components/Authenticate';
 import TeamManagement from './components/team/TeamManagement';
-import LineupDrawer from './components/LineupDrawer';
-import LineupActions from './components/LineupActions';
+import TeamLineupBar from './components/TeamLineupBar';
 import useBaseballStore from './store/useBaseballStore';
 
 const theme = createTheme({
@@ -37,40 +35,12 @@ const theme = createTheme({
 });
 
 function BattingOrderTab() {
-  const { players, addPlayer, removePlayer, currentTeamId, currentLineupStatus } = useBaseballStore();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const isPublished = currentLineupStatus === 'published';
+  const { players, addPlayer, removePlayer, currentTeamId } = useBaseballStore();
 
   return (
     <Box>
       <GameContext />
-      {currentTeamId ? (
-        <>
-          <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Chip label="Team Active" color="success" size="small" />
-            <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-              Players are managed on the Team tab
-            </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<HistoryIcon />}
-              onClick={() => setDrawerOpen(true)}
-            >
-              Lineups
-            </Button>
-          </Paper>
-          <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <LineupActions />
-          </Paper>
-          {isPublished && (
-            <Alert severity="info" sx={{ mb: 3 }}>
-              This lineup has been published and is read-only. Duplicate it to make changes.
-            </Alert>
-          )}
-          <LineupDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-        </>
-      ) : (
+      {!currentTeamId && (
         <PlayerManagement
           players={players}
           onAddPlayer={addPlayer}
@@ -86,7 +56,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-  const { assignPosition, players } = useBaseballStore();
+  const { assignPosition, players, currentTeamId } = useBaseballStore();
   const { user } = useStytchUser();
   const stytch = useStytch();
 
@@ -226,13 +196,17 @@ function App() {
               navigate(routes[newValue]);
             }}
             centered
-            sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
+            sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
           >
             <Tab label="Team" />
             <Tab label="Batting Order" />
             <Tab label="Lineup Editor" />
             <Tab label="All Innings Summary" />
           </Tabs>
+
+          {currentTeamId && location.pathname !== '/team' && (
+            <TeamLineupBar />
+          )}
 
           <Routes>
             <Route path="/login" element={<Login />} />

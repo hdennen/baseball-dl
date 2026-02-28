@@ -23,7 +23,7 @@ import type { Team } from '@baseball-dl/shared';
 
 interface TeamSelectorProps {
   currentTeamId: string | null;
-  onTeamSelected: (teamId: string | null) => void;
+  onTeamSelected: (teamId: string | null, teamName: string | null) => void;
   onTeamCreated: (team: Team) => void;
 }
 
@@ -43,7 +43,12 @@ function TeamSelector({ currentTeamId, onTeamSelected, onTeamCreated }: TeamSele
   });
 
   const handleTeamChange = (teamId: string) => {
-    onTeamSelected(teamId === '' ? null : teamId);
+    if (teamId === '') {
+      onTeamSelected(null, null);
+    } else {
+      const team = teams.find((t) => t.id === teamId);
+      onTeamSelected(teamId, team?.name ?? null);
+    }
   };
 
   const handleCreateTeam = () => {

@@ -25,6 +25,7 @@ export interface BaseballStore {
   showBenchIndicators: boolean;
   gameContext: WebGameContext;
   currentTeamId: string | null;
+  currentTeamName: string | null;
   currentLineupId: string | null;
   currentLineupStatus: LineupStatus | null;
 
@@ -35,7 +36,7 @@ export interface BaseballStore {
 
   addPlayer: (name: string) => void;
   removePlayer: (playerId: string) => void;
-  setCurrentTeam: (teamId: string | null) => void;
+  setCurrentTeam: (teamId: string | null, teamName?: string | null) => void;
   loadTeamPlayers: (players: Player[]) => void;
   migrateToTeam: (teamId: string, idMap: Record<string, string>) => void;
 

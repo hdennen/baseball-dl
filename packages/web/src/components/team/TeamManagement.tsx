@@ -56,8 +56,8 @@ function TeamManagement() {
     return players.length > 0;
   };
 
-  const handleTeamSelected = (teamId: string | null) => {
-    setCurrentTeam(teamId);
+  const handleTeamSelected = (teamId: string | null, teamName: string | null) => {
+    setCurrentTeam(teamId, teamName);
   };
 
   const handleTeamCreated = (team: Team) => {
@@ -65,7 +65,7 @@ function TeamManagement() {
       setPendingTeam(team);
       setImportDialogOpen(true);
     } else {
-      setCurrentTeam(team.id);
+      setCurrentTeam(team.id, team.name);
     }
   };
 
@@ -97,7 +97,7 @@ function TeamManagement() {
 
   const handleImportDeclined = () => {
     if (pendingTeam) {
-      setCurrentTeam(pendingTeam.id);
+      setCurrentTeam(pendingTeam.id, pendingTeam.name);
     }
     setImportDialogOpen(false);
     setPendingTeam(null);

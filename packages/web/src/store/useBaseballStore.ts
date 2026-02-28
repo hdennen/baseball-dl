@@ -33,6 +33,7 @@ const useBaseballStore = create<BaseballStore>()(
   showBenchIndicators: true,
   gameContext: { ...DEFAULT_GAME_CONTEXT },
   currentTeamId: null as string | null,
+  currentTeamName: null as string | null,
   currentLineupId: null as string | null,
   currentLineupStatus: null as LineupStatus | null,
 
@@ -103,9 +104,10 @@ const useBaseballStore = create<BaseballStore>()(
     set({ currentLineupId: id, currentLineupStatus: status });
   },
 
-  setCurrentTeam: (teamId: string | null) => {
+  setCurrentTeam: (teamId: string | null, teamName?: string | null) => {
     set({
       currentTeamId: teamId,
+      currentTeamName: teamName ?? null,
       currentLineupId: null,
       currentLineupStatus: null,
       players: [],
@@ -508,6 +510,7 @@ const useBaseballStore = create<BaseballStore>()(
         showBenchIndicators: state.showBenchIndicators,
         gameContext: state.gameContext,
         currentTeamId: state.currentTeamId,
+        currentTeamName: state.currentTeamName,
         currentLineupId: state.currentLineupId,
         currentLineupStatus: state.currentLineupStatus,
       }),
