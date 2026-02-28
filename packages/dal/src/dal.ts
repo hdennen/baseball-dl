@@ -156,7 +156,7 @@ export function createDAL(pool: Pool) {
         'SELECT * FROM remove_team_member($1, $2, $3)',
         [teamId, userId, requestingUserId]
       );
-      return rows[0] as boolean;
+      return rows[0].remove_team_member as boolean;
     },
 
     async getTeamMembers(teamId: string, userId: string) {
@@ -246,7 +246,7 @@ export function createDAL(pool: Pool) {
         'SELECT * FROM remove_player_from_team($1, $2, $3)',
         [playerId, teamId, userId]
       );
-      return rows[0] as boolean;
+      return rows[0].remove_player_from_team as boolean;
     },
 
     async getTeamPlayers(teamId: string, userId: string) {
@@ -346,7 +346,7 @@ export function createDAL(pool: Pool) {
         'SELECT * FROM delete_lineup($1, $2)',
         [lineupId, userId]
       );
-      return rows[0] as boolean;
+      return rows[0].delete_lineup as boolean;
     },
 
     // ============================================================
