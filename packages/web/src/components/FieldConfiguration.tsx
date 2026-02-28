@@ -1,17 +1,18 @@
 import { Box, FormGroup, FormControlLabel, Checkbox, Typography } from '@mui/material';
 import useBaseballStore from '../store/useBaseballStore';
+import type { FieldConfig } from '../types';
 
 function FieldConfiguration() {
   const { innings, currentInningIndex, toggleFieldPosition } = useBaseballStore();
   
   const currentInning = innings[currentInningIndex];
-  const fieldConfig = currentInning?.fieldConfig || {
+  const fieldConfig: FieldConfig = currentInning?.fieldConfig || {
     'center-field': true,
     'center-left-field': false,
     'center-right-field': false,
   };
 
-  const handleToggle = (position) => {
+  const handleToggle = (position: keyof FieldConfig) => {
     toggleFieldPosition(position);
   };
 

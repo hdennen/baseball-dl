@@ -10,9 +10,24 @@ import {
   TableRow,
 } from '@mui/material';
 import GameContextHeader from './GameContextHeader';
+import type { Inning, Player, BattingOrderEntry } from '../../types';
+import type { WebGameContext } from '../../types';
 
-// Position configurations for the lineup card
-const positions = [
+interface PositionDef {
+  key: string;
+  label: string;
+  section: string;
+}
+
+interface FieldViewProps {
+  innings: Inning[];
+  getPlayerName: (id: string) => string;
+  getBenchedPlayers: (inningIndex: number) => Player[];
+  getBattingOrderWithPlayers: () => BattingOrderEntry[];
+  gameContext: WebGameContext;
+}
+
+const positions: PositionDef[] = [
   { key: 'left-field', label: 'LF', section: 'outfield' },
   { key: 'center-left-field', label: 'LCF', section: 'outfield' },
   { key: 'center-field', label: 'CF', section: 'outfield' },
@@ -26,9 +41,8 @@ const positions = [
   { key: 'catcher', label: 'C', section: 'battery' },
 ];
 
-function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderWithPlayers, gameContext }) {
-  // Check if a position is active in ANY inning (for display purposes)
-  const isPositionUsedInAnyInning = (positionKey) => {
+function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderWithPlayers, gameContext }: FieldViewProps) {
+  const isPositionUsedInAnyInning = (positionKey: string): boolean => {
     // Always show non-configurable positions
     if (positionKey !== 'center-field' && positionKey !== 'center-left-field' && positionKey !== 'center-right-field') {
       return true;
@@ -36,22 +50,20 @@ function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderW
     // Check if this position is enabled in any inning
     return innings.some((inning) => {
       const fieldConfig = inning.fieldConfig || {};
-      return fieldConfig[positionKey] === true;
+      return fieldConfig[positionKey as keyof typeof fieldConfig] === true;
     });
   };
 
-  // Filter positions to only show those that are used in at least one inning
   const visiblePositions = positions.filter((pos) => isPositionUsedInAnyInning(pos.key));
 
-  const PositionCard = ({ position }) => {
-    // Check if this position is active in each inning
-    const isPositionActiveInInning = (inning, positionKey) => {
-      // Always show non-configurable positions
+  const PositionCard = ({ position }: { position?: PositionDef }) => {
+    if (!position) return null;
+    const isPositionActiveInInning = (inning: Inning, positionKey: string): boolean => {
       if (positionKey !== 'center-field' && positionKey !== 'center-left-field' && positionKey !== 'center-right-field') {
         return true;
       }
       const fieldConfig = inning.fieldConfig || {};
-      return fieldConfig[positionKey] === true;
+      return fieldConfig[positionKey as keyof typeof fieldConfig] === true;
     };
 
     return (
@@ -250,7 +262,7 @@ function FieldView({ innings, getPlayerName, getBenchedPlayers, getBattingOrderW
                     },
                   }}
                 >
-                  {item.player.name}
+                  {item.player!.name}
                 </Typography>
               </Box>
             ))}

@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
-  Tabs,
   Tab,
   Button,
   ButtonGroup,
@@ -33,6 +32,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
 import {
   SortableContext,
   horizontalListSortingStrategy,
@@ -42,7 +42,15 @@ import { CSS } from '@dnd-kit/utilities';
 import useBaseballStore from '../store/useBaseballStore';
 import GeneratePositionsModal from './GeneratePositionsModal';
 
-function SortableTab({ index, isActive, onClick, onDelete, label }) {
+interface SortableTabProps {
+  index: number;
+  isActive: boolean;
+  onClick: () => void;
+  onDelete?: (e: React.MouseEvent) => void;
+  label: string;
+}
+
+function SortableTab({ index, isActive, onClick, onDelete, label }: SortableTabProps) {
   const {
     attributes,
     listeners,
@@ -128,7 +136,7 @@ function InningManager() {
   } = useBaseballStore();
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
 
   const sensors = useSensors(
@@ -139,17 +147,17 @@ function InningManager() {
     })
   );
 
-  const handleDeleteInning = (index, event) => {
+  const handleDeleteInning = (index: number, event: React.MouseEvent) => {
     event.stopPropagation();
     removeInning(index);
   };
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = parseInt(active.id.replace('inning-', ''));
-      const newIndex = parseInt(over.id.replace('inning-', ''));
+      const oldIndex = parseInt(String(active.id).replace('inning-', ''));
+      const newIndex = parseInt(String(over.id).replace('inning-', ''));
       reorderInnings(oldIndex, newIndex);
     }
   };
@@ -159,7 +167,7 @@ function InningManager() {
     setConfirmDialogOpen(false);
   };
 
-  const handleMenuOpen = (event) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMenuAnchorEl(event.currentTarget);
   };
 

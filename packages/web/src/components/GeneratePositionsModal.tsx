@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  TextField,
   Typography,
   Box,
   Alert,
@@ -17,10 +16,16 @@ import {
   Checkbox,
   FormGroup,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import { AutoAwesome as GenerateIcon } from '@mui/icons-material';
 import useBaseballStore from '../store/useBaseballStore';
 
-function GeneratePositionsModal({ open, onClose }) {
+interface GeneratePositionsModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+function GeneratePositionsModal({ open, onClose }: GeneratePositionsModalProps) {
   const { innings, generatePositionsForAllInnings, getAvailablePlayers } = useBaseballStore();
   const availablePlayers = getAvailablePlayers();
   const [inningCount, setInningCount] = useState(6);
@@ -41,7 +46,7 @@ function GeneratePositionsModal({ open, onClose }) {
       await generatePositionsForAllInnings(inningCount, useCurrentFieldConfig);
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to generate positions');
+      setError(err instanceof Error ? err.message : 'Failed to generate positions');
     } finally {
       setIsGenerating(false);
     }
@@ -85,7 +90,7 @@ function GeneratePositionsModal({ open, onClose }) {
             <Select
               value={inningCount}
               label="Number of Innings"
-              onChange={(e) => setInningCount(e.target.value)}
+              onChange={(e: SelectChangeEvent<number>) => setInningCount(Number(e.target.value))}
             >
               {[3, 4, 5, 6, 7, 8, 9].map((num) => (
                 <MenuItem key={num} value={num}>

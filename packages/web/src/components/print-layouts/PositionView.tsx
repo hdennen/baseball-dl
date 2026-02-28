@@ -10,9 +10,23 @@ import {
   TableRow,
 } from '@mui/material';
 import GameContextHeader from './GameContextHeader';
+import type { Inning, Player } from '../../types';
+import type { WebGameContext } from '../../types';
 
-// Positions in fielding order (battery, infield, outfield)
-const positions = [
+interface PositionDef {
+  key: string;
+  label: string;
+  fullName: string;
+}
+
+interface PositionViewProps {
+  innings: Inning[];
+  getPlayerName: (id: string) => string;
+  getBenchedPlayers: (inningIndex: number) => Player[];
+  gameContext: WebGameContext;
+}
+
+const positions: PositionDef[] = [
   { key: 'pitcher', label: 'P', fullName: 'Pitcher' },
   { key: 'catcher', label: 'C', fullName: 'Catcher' },
   { key: 'first-base', label: '1B', fullName: 'First Base' },
@@ -26,25 +40,23 @@ const positions = [
   { key: 'right-field', label: 'RF', fullName: 'Right Field' },
 ];
 
-function PositionView({ innings, getPlayerName, getBenchedPlayers, gameContext }) {
-  // Check if a position is used in any inning
-  const isPositionUsedInAnyInning = (positionKey) => {
+function PositionView({ innings, getPlayerName, getBenchedPlayers, gameContext }: PositionViewProps) {
+  const isPositionUsedInAnyInning = (positionKey: string): boolean => {
     if (positionKey !== 'center-field' && positionKey !== 'center-left-field' && positionKey !== 'center-right-field') {
       return true;
     }
     return innings.some((inning) => {
       const fieldConfig = inning.fieldConfig || {};
-      return fieldConfig[positionKey] === true;
+      return fieldConfig[positionKey as keyof typeof fieldConfig] === true;
     });
   };
 
-  // Check if position is active in specific inning
-  const isPositionActiveInInning = (inning, positionKey) => {
+  const isPositionActiveInInning = (inning: Inning, positionKey: string): boolean => {
     if (positionKey !== 'center-field' && positionKey !== 'center-left-field' && positionKey !== 'center-right-field') {
       return true;
     }
     const fieldConfig = inning.fieldConfig || {};
-    return fieldConfig[positionKey] === true;
+    return fieldConfig[positionKey as keyof typeof fieldConfig] === true;
   };
 
   const visiblePositions = positions.filter((pos) => isPositionUsedInAnyInning(pos.key));
@@ -115,8 +127,7 @@ function PositionView({ innings, getPlayerName, getBenchedPlayers, gameContext }
             </TableRow>
           </TableHead>
           <TableBody>
-            {visiblePositions.map((position, posIdx) => {
-              // Add visual separator between sections
+            {visiblePositions.map((position) => {
               const isFirstInfield = position.key === 'first-base';
               const isFirstOutfield = position.key === 'left-field';
 

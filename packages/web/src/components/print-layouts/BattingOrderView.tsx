@@ -10,9 +10,10 @@ import {
   TableRow,
 } from '@mui/material';
 import GameContextHeader from './GameContextHeader';
+import type { Inning, Player, BattingOrderEntry } from '../../types';
+import type { WebGameContext } from '../../types';
 
-// Position key to abbreviation mapping
-const positionLabels = {
+const positionLabels: Record<string, string> = {
   'pitcher': 'P',
   'catcher': 'C',
   'first-base': '1B',
@@ -26,11 +27,17 @@ const positionLabels = {
   'right-field': 'RF',
 };
 
-function BattingOrderView({ innings, getBattingOrderWithPlayers, getBenchedPlayers, gameContext }) {
+interface BattingOrderViewProps {
+  innings: Inning[];
+  getBattingOrderWithPlayers: () => BattingOrderEntry[];
+  getBenchedPlayers: (inningIndex: number) => Player[];
+  gameContext: WebGameContext;
+}
+
+function BattingOrderView({ innings, getBattingOrderWithPlayers, gameContext }: BattingOrderViewProps) {
   const battingOrder = getBattingOrderWithPlayers();
 
-  // Find position for a player in a specific inning
-  const getPlayerPositionInInning = (playerId, inningIndex) => {
+  const getPlayerPositionInInning = (playerId: string, inningIndex: number): string | null => {
     const inning = innings[inningIndex];
     if (!inning) return null;
 
@@ -135,7 +142,7 @@ function BattingOrderView({ innings, getBattingOrderWithPlayers, getBenchedPlaye
                     fontWeight: 'bold',
                   }}
                 >
-                  {item.player.name}
+                  {item.player!.name}
                 </TableCell>
                 {innings.map((_, inningIdx) => {
                   const position = getPlayerPositionInInning(item.playerId, inningIdx);

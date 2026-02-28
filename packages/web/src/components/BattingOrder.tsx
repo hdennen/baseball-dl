@@ -26,20 +26,35 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import type { DragStartEvent, DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import {
-  arrayMove as arrayMoveSortable,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import useBaseballStore from '../store/useBaseballStore';
+import type { Player } from '../types';
 
-// Sortable item component for batting order
-function SortableBattingOrderItem({ player, order, onRemove }) {
+interface SortableBattingOrderItemProps {
+  player: Player;
+  order: number;
+  onRemove: (playerId: string) => void;
+}
+
+interface AvailablePlayersProps {
+  players: Player[];
+  onAdd: (playerId: string) => void;
+  onMarkUnavailable: (playerId: string) => void;
+}
+
+interface UnavailablePlayersProps {
+  players: Player[];
+  onRestore: (playerId: string) => void;
+}
+
+function SortableBattingOrderItem({ player, order, onRemove }: SortableBattingOrderItemProps) {
   const {
     attributes,
     listeners,
@@ -122,7 +137,7 @@ function SortableBattingOrderItem({ player, order, onRemove }) {
   );
 }
 
-function AvailablePlayers({ players, onAdd, onMarkUnavailable }) {
+function AvailablePlayers({ players, onAdd, onMarkUnavailable }: AvailablePlayersProps) {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
@@ -153,7 +168,7 @@ function AvailablePlayers({ players, onAdd, onMarkUnavailable }) {
   );
 }
 
-function UnavailablePlayers({ players, onRestore }) {
+function UnavailablePlayers({ players, onRestore }: UnavailablePlayersProps) {
   if (players.length === 0) return null;
 
   return (
@@ -192,7 +207,7 @@ function BattingOrder() {
     togglePlayerAvailability,
   } = useBaseballStore();
 
-  const [activeId, setActiveId] = useState(null);
+  const [_activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -208,17 +223,17 @@ function BattingOrder() {
     (player) => !battingOrder.includes(player.id)
   );
 
-  const handleDragStart = (event) => {
+  const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
   };
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
 
     if (active.id !== over?.id) {
-      const oldIndex = battingOrder.indexOf(active.id);
-      const newIndex = battingOrder.indexOf(over.id);
+      const oldIndex = battingOrder.indexOf(String(active.id));
+      const newIndex = battingOrder.indexOf(String(over!.id));
       
       if (oldIndex !== -1 && newIndex !== -1) {
         reorderBattingOrder(oldIndex, newIndex);
@@ -226,11 +241,11 @@ function BattingOrder() {
     }
   };
 
-  const handleAddPlayer = (playerId) => {
+  const handleAddPlayer = (playerId: string) => {
     addToBattingOrder(playerId);
   };
 
-  const handleRemovePlayer = (playerId) => {
+  const handleRemovePlayer = (playerId: string) => {
     removeFromBattingOrder(playerId);
   };
 
@@ -248,11 +263,11 @@ function BattingOrder() {
     setBattingOrder(availableIds);
   };
 
-  const handleMarkUnavailable = (playerId) => {
+  const handleMarkUnavailable = (playerId: string) => {
     togglePlayerAvailability(playerId);
   };
 
-  const handleRestorePlayer = (playerId) => {
+  const handleRestorePlayer = (playerId: string) => {
     togglePlayerAvailability(playerId);
   };
 
@@ -343,7 +358,7 @@ function BattingOrder() {
                 {battingOrderWithPlayers.map((item) => (
                   <SortableBattingOrderItem
                     key={item.playerId}
-                    player={item.player}
+                    player={item.player!}
                     order={item.order}
                     onRemove={handleRemovePlayer}
                   />

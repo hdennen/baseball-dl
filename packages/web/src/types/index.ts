@@ -1,6 +1,20 @@
-import type { Player, FieldConfig, Inning, GameContext, BattingOrderEntry, Position } from '@baseball-dl/shared';
+import type { Player, FieldConfig, Inning, BattingOrderEntry, Position } from '@baseball-dl/shared';
 
 export type { Player, FieldConfig, Inning, GameContext, BattingOrderEntry, Position, PositionAssignment } from '@baseball-dl/shared';
+
+/**
+ * Web-specific GameContext with separate date/time fields.
+ * The shared GameContext uses a single `dateTime` field for the API,
+ * but the web frontend stores date and time separately.
+ */
+export interface WebGameContext {
+  date: string | null;
+  time: string | null;
+  opponent: string | null;
+  location: string | null;
+  side: 'home' | 'away' | null;
+  notes: string | null;
+}
 
 export interface BaseballStore {
   players: Player[];
@@ -9,7 +23,7 @@ export interface BaseballStore {
   innings: Inning[];
   currentInningIndex: number;
   showBenchIndicators: boolean;
-  gameContext: GameContext;
+  gameContext: WebGameContext;
 
   addPlayer: (name: string) => void;
   removePlayer: (playerId: string) => void;
@@ -44,7 +58,7 @@ export interface BaseballStore {
 
   generatePositionsForAllInnings: (inningCount: number, useCurrentFieldConfig?: boolean) => void;
 
-  updateGameContext: (fields: Partial<GameContext>) => void;
+  updateGameContext: (fields: Partial<WebGameContext>) => void;
 
   clearAllData: () => void;
 }

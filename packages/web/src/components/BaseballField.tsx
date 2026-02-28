@@ -6,12 +6,29 @@ import {
   VisibilityOff as VisibilityOffIcon,
   Circle as CircleIcon
 } from '@mui/icons-material';
-import { useDroppable } from '@dnd-kit/core';
-import { useDraggable } from '@dnd-kit/core';
+import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import useBaseballStore from '../store/useBaseballStore';
+import type { Player } from '../types';
 
-function DraggablePlayer({ player, position }) {
+interface DraggablePlayerProps {
+  player: Player;
+  position: string;
+}
+
+interface PositionSlotProps {
+  position: string;
+  player: Player | undefined;
+}
+
+interface BenchPlayerProps {
+  player: Player;
+  index: number;
+  showBenchIndicator: boolean;
+  wasBenched: boolean;
+}
+
+function DraggablePlayer({ player, position }: DraggablePlayerProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: player.id,
     data: {
@@ -39,7 +56,7 @@ function DraggablePlayer({ player, position }) {
   );
 }
 
-function PositionSlot({ position, player }) {
+function PositionSlot({ position, player }: PositionSlotProps) {
   const { getPositionLabel } = useBaseballStore();
   const label = getPositionLabel(position);
 
@@ -83,7 +100,7 @@ function PositionSlot({ position, player }) {
   );
 }
 
-function BenchPlayer({ player, index, showBenchIndicator, wasBenched }) {
+function BenchPlayer({ player, showBenchIndicator, wasBenched }: BenchPlayerProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: player.id,
     data: {
@@ -142,11 +159,9 @@ function BaseballField() {
   const benchedPlayers = getBenchedPlayers(currentInningIndex);
   const activePositions = getActivePositions(currentInningIndex);
   
-  // Helper to check if a position is active
-  const isPositionActive = (position) => activePositions.includes(position);
+  const isPositionActive = (position: string) => (activePositions as string[]).includes(position);
 
-  // Get player object for each position
-  const getPlayerForPosition = (position) => {
+  const getPlayerForPosition = (position: string): Player | undefined => {
     const playerId = currentInning.positions[position];
     return players.find((p) => p.id === playerId);
   };

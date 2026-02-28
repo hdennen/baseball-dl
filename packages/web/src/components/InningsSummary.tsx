@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -13,12 +13,13 @@ import BattingOrderView from './print-layouts/BattingOrderView';
 import PositionView from './print-layouts/PositionView';
 import BoxScoreView from './print-layouts/BoxScoreView';
 
+type LayoutType = 'field' | 'batting' | 'position' | 'boxscore';
+
 function InningsSummary() {
   const { innings, players, getBenchedPlayers, getBattingOrderWithPlayers, gameContext } = useBaseballStore();
-  const [layoutType, setLayoutType] = useState('field');
+  const [layoutType, setLayoutType] = useState<LayoutType>('field');
 
-  // Get player name by ID
-  const getPlayerName = (playerId) => {
+  const getPlayerName = (playerId: string): string => {
     const player = players.find((p) => p.id === playerId);
     return player ? player.name : '';
   };
@@ -27,13 +28,13 @@ function InningsSummary() {
     window.print();
   };
 
-  const handleLayoutChange = (event, newLayout) => {
+  const handleLayoutChange = (_: React.MouseEvent<HTMLElement>, newLayout: LayoutType | null) => {
     if (newLayout !== null) {
       setLayoutType(newLayout);
     }
   };
 
-  const layoutTitles = {
+  const layoutTitles: Record<LayoutType, string> = {
     field: 'Field Positions by Inning',
     batting: 'Batting Order View',
     position: 'Positions by Inning',

@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Accordion,
   AccordionSummary,
@@ -10,15 +11,16 @@ import {
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import useBaseballStore from '../store/useBaseballStore';
+import type { WebGameContext } from '../types';
 
 function GameContext() {
   const { gameContext, updateGameContext } = useBaseballStore();
 
-  const handleChange = (field) => (e) => {
+  const handleChange = (field: keyof WebGameContext) => (e: React.ChangeEvent<HTMLInputElement>) => {
     updateGameContext({ [field]: e.target.value || null });
   };
 
-  const handleSideChange = (_, newSide) => {
+  const handleSideChange = (_: React.MouseEvent<HTMLElement>, newSide: 'home' | 'away' | null) => {
     updateGameContext({ side: newSide });
   };
 

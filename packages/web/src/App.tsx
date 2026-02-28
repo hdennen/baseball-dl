@@ -1,7 +1,14 @@
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
-import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button, CircularProgress } from '@mui/material';
+import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button } from '@mui/material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { DragStartEvent, DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import { useStytchUser, useStytch } from '@stytch/react';
 import PlayerManagement from './components/PlayerManagement';
 import GameContext from './components/GameContext';
@@ -28,21 +35,19 @@ const theme = createTheme({
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeId, setActiveId] = useState(null);
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const { assignPosition, players } = useBaseballStore();
-  const { user, isInitialized } = useStytchUser();
+  const { user } = useStytchUser();
   const stytch = useStytch();
 
 
-  // Map routes to tab indices
-  const routeToTabIndex = {
+  const routeToTabIndex: Record<string, number> = {
     '/': 0,
     '/batting': 0,
     '/lineup': 1,
     '/innings': 2,
   };
 
-  // Get current tab based on route
   const getCurrentTab = () => {
     return routeToTabIndex[location.pathname] ?? 0;
   };
@@ -72,35 +77,31 @@ function App() {
     })
   );
 
-  const handleDragStart = (event) => {
+  const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
   };
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
     setActiveId(null);
 
     if (!over) return;
 
-    // If dropped in the same place, do nothing
     if (active.id === over.id) {
       return;
     }
 
-    const activeId = active.id;
-    const overId = over.id;
+    const draggedId = String(active.id);
+    const overId = String(over.id);
 
-    // If dropped on a position
     if (overId.startsWith('position-')) {
       const targetPosition = overId.replace('position-', '');
-      assignPosition(targetPosition, activeId);
+      assignPosition(targetPosition, draggedId);
     }
     
-    // If dropped back to bench
     if (overId === 'bench') {
-      // Find which position this player was in and remove them
-      const sourcePosition = active.data.current?.position;
+      const sourcePosition = active.data.current?.position as string | undefined;
       if (sourcePosition) {
         assignPosition(sourcePosition, null);
       }
@@ -163,7 +164,7 @@ function App() {
           <Tabs 
             className="no-print"
             value={currentView} 
-            onChange={(e, newValue) => {
+            onChange={(_: React.SyntheticEvent, newValue: number) => {
               setCurrentView(newValue);
               // Navigate to corresponding route
               const routes = ['/batting', '/lineup', '/innings'];

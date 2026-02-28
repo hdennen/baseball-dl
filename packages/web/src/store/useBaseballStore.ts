@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { generatePositionsForAllInnings, generateCurrentInningPositions, getActivePositions as getActivePositionsFromService, fillRemainingPositions as fillRemainingPositionsService, POSITIONS } from '../services/PositionGeneratorService';
-import type { Player, FieldConfig, GameContext, BattingOrderEntry, Position } from '@baseball-dl/shared';
-import type { BaseballStore } from '../types/index';
+import type { Player, FieldConfig, BattingOrderEntry, Position } from '@baseball-dl/shared';
+import type { BaseballStore, WebGameContext } from '../types/index';
 
 const DEFAULT_FIELD_CONFIG: FieldConfig = {
   'center-field': true,
@@ -10,7 +10,7 @@ const DEFAULT_FIELD_CONFIG: FieldConfig = {
   'center-right-field': false,
 };
 
-const DEFAULT_GAME_CONTEXT: GameContext = {
+const DEFAULT_GAME_CONTEXT: WebGameContext = {
   date: null,
   time: null,
   opponent: null,
@@ -34,10 +34,10 @@ const useBaseballStore = create<BaseballStore>()(
   gameContext: { ...DEFAULT_GAME_CONTEXT },
 
   addPlayer: (name: string) => {
-    const newPlayer: Player = {
+    const newPlayer = {
       id: `player-${Date.now()}-${Math.random()}`,
       name,
-    };
+    } as Player;
     set((state) => ({
       players: [...state.players, newPlayer],
     }));
@@ -361,7 +361,7 @@ const useBaseballStore = create<BaseballStore>()(
     });
   },
 
-  updateGameContext: (fields: Partial<GameContext>) => {
+  updateGameContext: (fields: Partial<WebGameContext>) => {
     set((state) => ({
       gameContext: { ...state.gameContext, ...fields },
     }));

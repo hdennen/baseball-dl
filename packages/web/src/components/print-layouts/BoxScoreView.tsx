@@ -8,11 +8,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
 } from '@mui/material';
+import type { Inning, Player, BattingOrderEntry } from '../../types';
+import type { WebGameContext } from '../../types';
 
-// Position key to abbreviation mapping
-const positionLabels = {
+const positionLabels: Record<string, string> = {
   'pitcher': 'P',
   'catcher': 'C',
   'first-base': '1B',
@@ -26,24 +26,28 @@ const positionLabels = {
   'right-field': 'RF',
 };
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return null;
+const formatDate = (dateStr: string): string => {
   const [year, month, day] = dateStr.split('-').map(Number);
   return new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-const formatTime = (timeStr) => {
-  if (!timeStr) return null;
+const formatTime = (timeStr: string): string => {
   const [hours, minutes] = timeStr.split(':').map(Number);
   const ampm = hours >= 12 ? 'PM' : 'AM';
   return `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${ampm}`;
 };
 
-function BoxScoreView({ innings, getBattingOrderWithPlayers, getBenchedPlayers, gameContext }) {
+interface BoxScoreViewProps {
+  innings: Inning[];
+  getBattingOrderWithPlayers: () => BattingOrderEntry[];
+  getBenchedPlayers: (inningIndex: number) => Player[];
+  gameContext: WebGameContext;
+}
+
+function BoxScoreView({ innings, getBattingOrderWithPlayers, getBenchedPlayers, gameContext }: BoxScoreViewProps) {
   const battingOrder = getBattingOrderWithPlayers();
 
-  // Find position for a player in a specific inning
-  const getPlayerPositionInInning = (playerId, inningIndex) => {
+  const getPlayerPositionInInning = (playerId: string, inningIndex: number): string | null => {
     const inning = innings[inningIndex];
     if (!inning) return null;
 
@@ -214,7 +218,7 @@ function BoxScoreView({ innings, getBattingOrderWithPlayers, getBenchedPlayers, 
                     fontWeight: 'bold',
                   }}
                 >
-                  {item.player.name}
+                  {item.player!.name}
                 </TableCell>
                 {innings.map((_, inningIdx) => {
                   const position = getPlayerPositionInInning(item.playerId, inningIdx);
