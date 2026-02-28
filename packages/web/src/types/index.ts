@@ -24,9 +24,12 @@ export interface BaseballStore {
   currentInningIndex: number;
   showBenchIndicators: boolean;
   gameContext: WebGameContext;
+  currentTeamId: string | null;
 
   addPlayer: (name: string) => void;
   removePlayer: (playerId: string) => void;
+  setCurrentTeam: (teamId: string | null) => void;
+  loadTeamPlayers: (players: Player[]) => void;
 
   assignPosition: (position: string, playerId: string | null) => void;
   randomlyAssignPlayers: () => void;

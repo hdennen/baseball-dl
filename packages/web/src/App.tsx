@@ -19,6 +19,7 @@ import InningsSummary from './components/InningsSummary';
 import FieldConfiguration from './components/FieldConfiguration';
 import Login from './components/Login';
 import Authenticate from './components/Authenticate';
+import TeamManagement from './components/team/TeamManagement';
 import useBaseballStore from './store/useBaseballStore';
 
 const theme = createTheme({
@@ -32,6 +33,31 @@ const theme = createTheme({
   },
 });
 
+function BattingOrderTab() {
+  const { players, addPlayer, removePlayer, currentTeamId } = useBaseballStore();
+
+  return (
+    <Box>
+      <GameContext />
+      {currentTeamId ? (
+        <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip label="Team Active" color="success" size="small" />
+          <Typography variant="body2" color="text.secondary">
+            Players are managed on the Team tab
+          </Typography>
+        </Paper>
+      ) : (
+        <PlayerManagement
+          players={players}
+          onAddPlayer={addPlayer}
+          onRemovePlayer={removePlayer}
+        />
+      )}
+      <BattingOrder />
+    </Box>
+  );
+}
+
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,14 +68,15 @@ function App() {
 
 
   const routeToTabIndex: Record<string, number> = {
-    '/': 0,
-    '/batting': 0,
-    '/lineup': 1,
-    '/innings': 2,
+    '/': 1,
+    '/team': 0,
+    '/batting': 1,
+    '/lineup': 2,
+    '/innings': 3,
   };
 
   const getCurrentTab = () => {
-    return routeToTabIndex[location.pathname] ?? 0;
+    return routeToTabIndex[location.pathname] ?? false;
   };
 
   const [currentView, setCurrentView] = useState(getCurrentTab());
@@ -171,13 +198,13 @@ function App() {
             value={currentView} 
             onChange={(_: React.SyntheticEvent, newValue: number) => {
               setCurrentView(newValue);
-              // Navigate to corresponding route
-              const routes = ['/batting', '/lineup', '/innings'];
+              const routes = ['/team', '/batting', '/lineup', '/innings'];
               navigate(routes[newValue]);
             }}
             centered
             sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
           >
+            <Tab label="Team" />
             <Tab label="Batting Order" />
             <Tab label="Lineup Editor" />
             <Tab label="All Innings Summary" />
@@ -187,12 +214,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/authenticate" element={<Authenticate />} />
             <Route path="/" element={<Navigate to="/batting" replace />} />
+            <Route path="/team" element={<TeamManagement />} />
             <Route path="/batting" element={
-              <Box>
-                <GameContext />
-                <PlayerManagement />
-                <BattingOrder />
-              </Box>
+              <BattingOrderTab />
             } />
             <Route path="/lineup" element={
               <Box>

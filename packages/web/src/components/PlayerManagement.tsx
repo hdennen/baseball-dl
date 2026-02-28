@@ -9,22 +9,32 @@ import {
   Stack,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import useBaseballStore from '../store/useBaseballStore';
+import type { Player } from '@baseball-dl/shared';
 
-function PlayerManagement() {
+interface PlayerManagementProps {
+  players: Player[];
+  onAddPlayer: (name: string) => void;
+  onRemovePlayer: (playerId: string) => void;
+  title?: string;
+  subtitle?: string;
+}
+
+function PlayerManagement({
+  players,
+  onAddPlayer,
+  onRemovePlayer,
+  title = 'Player Management',
+  subtitle = 'Drag players from the Bench section below to assign them to positions',
+}: PlayerManagementProps) {
   const [playerName, setPlayerName] = useState('');
-  const { players, addPlayer, removePlayer } = useBaseballStore();
 
   const handleAddPlayer = () => {
     if (playerName.trim()) {
-      // Check if input contains commas (comma-delimited list)
       if (playerName.includes(',')) {
-        // Split by comma and add each player
         const names = playerName.split(',').map(name => name.trim()).filter(name => name);
-        names.forEach(name => addPlayer(name));
+        names.forEach(name => onAddPlayer(name));
       } else {
-        // Single player
-        addPlayer(playerName.trim());
+        onAddPlayer(playerName.trim());
       }
       setPlayerName('');
     }
@@ -39,7 +49,7 @@ function PlayerManagement() {
   return (
     <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" gutterBottom>
-        Player Management
+        {title}
       </Typography>
       
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
@@ -84,7 +94,7 @@ function PlayerManagement() {
               <Chip
                 key={player.id}
                 label={player.name}
-                onDelete={() => removePlayer(player.id)}
+                onDelete={() => onRemovePlayer(player.id)}
                 deleteIcon={<DeleteIcon />}
                 color="primary"
                 variant="outlined"
@@ -93,9 +103,11 @@ function PlayerManagement() {
           </Stack>
         )}
       </Box>
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-        Drag players from the Bench section below to assign them to positions
-      </Typography>
+      {subtitle && (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+          {subtitle}
+        </Typography>
+      )}
     </Paper>
   );
 }

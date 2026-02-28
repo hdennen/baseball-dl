@@ -8,13 +8,23 @@ export interface ApiContext {
 
 export function createContextBuilder(dal: DAL) {
   return async ({ req }: { req: Request }): Promise<ApiContext> => {
-    // Dev stub: read user ID from header for testing.
-    // Real Stytch JWT verification replaces this later.
-    const userId = req.headers['x-user-id'] as string | undefined;
+    const stytchUserId = req.headers['x-user-id'] as string | undefined;
+    const email = req.headers['x-user-email'] as string | undefined;
+
+    if (!stytchUserId) {
+      return { dal, userId: null };
+    }
+
+    // Resolve Stytch user ID to internal UUID via upsert.
+    // Requires email on first call to create the user record.
+    const user = await dal.getOrCreateUser(
+      stytchUserId,
+      email ?? `${stytchUserId}@placeholder.local`,
+    );
 
     return {
       dal,
-      userId: userId ?? null,
+      userId: user.id,
     };
   };
 }

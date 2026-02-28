@@ -32,6 +32,25 @@ const useBaseballStore = create<BaseballStore>()(
   currentInningIndex: 0,
   showBenchIndicators: true,
   gameContext: { ...DEFAULT_GAME_CONTEXT },
+  currentTeamId: null as string | null,
+
+  setCurrentTeam: (teamId: string | null) => {
+    set({
+      currentTeamId: teamId,
+      players: [],
+      battingOrder: [],
+      unavailablePlayers: [],
+      innings: [{
+        positions: {},
+        fieldConfig: { ...DEFAULT_FIELD_CONFIG },
+      }],
+      currentInningIndex: 0,
+    });
+  },
+
+  loadTeamPlayers: (players: Player[]) => {
+    set({ players });
+  },
 
   addPlayer: (name: string) => {
     const newPlayer = {
@@ -393,6 +412,7 @@ const useBaseballStore = create<BaseballStore>()(
         currentInningIndex: state.currentInningIndex,
         showBenchIndicators: state.showBenchIndicators,
         gameContext: state.gameContext,
+        currentTeamId: state.currentTeamId,
       }),
     }
   )
