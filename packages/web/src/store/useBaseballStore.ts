@@ -24,6 +24,7 @@ const useBaseballStore = create<BaseballStore>()(
     (set, get) => ({
   players: [] as Player[],
   battingOrder: [] as string[],
+  unavailablePlayers: [] as string[],
   innings: [{
     positions: {} as Record<string, string>,
     fieldConfig: { ...DEFAULT_FIELD_CONFIG },
@@ -46,6 +47,7 @@ const useBaseballStore = create<BaseballStore>()(
     set((state) => ({
       players: state.players.filter((p) => p.id !== playerId),
       battingOrder: state.battingOrder.filter((id) => id !== playerId),
+      unavailablePlayers: state.unavailablePlayers.filter((id) => id !== playerId),
       innings: state.innings.map((inning) => ({
         positions: Object.fromEntries(
           Object.entries(inning.positions).filter(([, pId]) => pId !== playerId)
@@ -157,11 +159,14 @@ const useBaseballStore = create<BaseballStore>()(
 
   randomlyAssignPlayers: () => {
     set((state) => {
-      if (state.players.length === 0) return state;
+      const availablePlayers = state.players.filter(
+        (p) => !state.unavailablePlayers.includes(p.id)
+      );
+      if (availablePlayers.length === 0) return state;
 
       const newInnings = [...state.innings];
       const currentInning = newInnings[state.currentInningIndex];
-      const generatedInning = generateCurrentInningPositions(state.players, currentInning.fieldConfig);
+      const generatedInning = generateCurrentInningPositions(availablePlayers, currentInning.fieldConfig);
       newInnings[state.currentInningIndex] = generatedInning;
 
       return { innings: newInnings };
@@ -170,13 +175,16 @@ const useBaseballStore = create<BaseballStore>()(
 
   fillRemainingPositions: () => {
     set((state) => {
-      if (state.players.length === 0) return state;
+      const availablePlayers = state.players.filter(
+        (p) => !state.unavailablePlayers.includes(p.id)
+      );
+      if (availablePlayers.length === 0) return state;
 
       const newInnings = [...state.innings];
       const currentInning = newInnings[state.currentInningIndex];
       const newPositions = fillRemainingPositionsService(
         currentInning.positions,
-        state.players,
+        availablePlayers,
         currentInning.fieldConfig
       );
 
@@ -197,7 +205,9 @@ const useBaseballStore = create<BaseballStore>()(
     if (!inning) return [];
 
     const assignedPlayerIds = new Set(Object.values(inning.positions));
-    return state.players.filter((player) => !assignedPlayerIds.has(player.id));
+    return state.players.filter(
+      (player) => !assignedPlayerIds.has(player.id) && !state.unavailablePlayers.includes(player.id)
+    );
   },
 
   wasPlayerBenchedPreviously: (playerId: string): boolean => {
@@ -287,6 +297,39 @@ const useBaseballStore = create<BaseballStore>()(
     set({ battingOrder: playerIds });
   },
 
+  togglePlayerAvailability: (playerId: string) => {
+    set((state) => {
+      const isCurrentlyUnavailable = state.unavailablePlayers.includes(playerId);
+
+      if (isCurrentlyUnavailable) {
+        return {
+          unavailablePlayers: state.unavailablePlayers.filter((id) => id !== playerId),
+        };
+      }
+
+      return {
+        unavailablePlayers: [...state.unavailablePlayers, playerId],
+        battingOrder: state.battingOrder.filter((id) => id !== playerId),
+        innings: state.innings.map((inning) => ({
+          positions: Object.fromEntries(
+            Object.entries(inning.positions).filter(([, pId]) => pId !== playerId)
+          ),
+          fieldConfig: inning.fieldConfig,
+        })),
+      };
+    });
+  },
+
+  getAvailablePlayers: (): Player[] => {
+    const state = get();
+    return state.players.filter((p) => !state.unavailablePlayers.includes(p.id));
+  },
+
+  getUnavailablePlayerObjects: (): Player[] => {
+    const state = get();
+    return state.players.filter((p) => state.unavailablePlayers.includes(p.id));
+  },
+
   getBattingOrderWithPlayers: (): BattingOrderEntry[] => {
     const state = get();
     return state.battingOrder.map((playerId, index) => ({
@@ -298,7 +341,10 @@ const useBaseballStore = create<BaseballStore>()(
 
   generatePositionsForAllInnings: (inningCount: number, useCurrentFieldConfig = true) => {
     set((state) => {
-      if (state.players.length === 0) {
+      const availablePlayers = state.players.filter(
+        (p) => !state.unavailablePlayers.includes(p.id)
+      );
+      if (availablePlayers.length === 0) {
         throw new Error('No players available to assign positions');
       }
 
@@ -306,7 +352,7 @@ const useBaseballStore = create<BaseballStore>()(
         ? state.innings[state.currentInningIndex]?.fieldConfig || { ...DEFAULT_FIELD_CONFIG }
         : { ...DEFAULT_FIELD_CONFIG };
 
-      const newInnings = generatePositionsForAllInnings(state.players, inningCount, fieldConfig);
+      const newInnings = generatePositionsForAllInnings(availablePlayers, inningCount, fieldConfig);
 
       return {
         innings: newInnings,
@@ -325,6 +371,7 @@ const useBaseballStore = create<BaseballStore>()(
     set({
       players: [],
       battingOrder: [],
+      unavailablePlayers: [],
       innings: [{
         positions: {},
         fieldConfig: { ...DEFAULT_FIELD_CONFIG },
@@ -341,6 +388,7 @@ const useBaseballStore = create<BaseballStore>()(
       partialize: (state) => ({
         players: state.players,
         battingOrder: state.battingOrder,
+        unavailablePlayers: state.unavailablePlayers,
         innings: state.innings,
         currentInningIndex: state.currentInningIndex,
         showBenchIndicators: state.showBenchIndicators,

@@ -14,7 +14,9 @@ import {
   Remove as RemoveIcon,
   Shuffle as ShuffleIcon,
   Clear as ClearIcon,
-  PlaylistAdd as PlaylistAddIcon
+  PlaylistAdd as PlaylistAddIcon,
+  PersonOff as PersonOffIcon,
+  PersonAdd as PersonAddIcon,
 } from '@mui/icons-material';
 import {
   DndContext,
@@ -120,23 +122,56 @@ function SortableBattingOrderItem({ player, order, onRemove }) {
   );
 }
 
-// Available players component
-function AvailablePlayers({ players, onAdd }) {
+function AvailablePlayers({ players, onAdd, onMarkUnavailable }) {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
         Available Players
+      </Typography>
+      {players.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          No available players to add. Add players above or restore from unavailable below.
+        </Typography>
+      ) : (
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          {players.map((player) => (
+            <Chip
+              key={player.id}
+              label={player.name}
+              onClick={() => onAdd(player.id)}
+              onDelete={() => onMarkUnavailable(player.id)}
+              deleteIcon={<PersonOffIcon fontSize="small" />}
+              icon={<AddIcon />}
+              color="primary"
+              variant="outlined"
+              clickable
+            />
+          ))}
+        </Stack>
+      )}
+    </Box>
+  );
+}
+
+function UnavailablePlayers({ players, onRestore }) {
+  if (players.length === 0) return null;
+
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom color="text.secondary">
+        Unavailable Players
       </Typography>
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
         {players.map((player) => (
           <Chip
             key={player.id}
             label={player.name}
-            onClick={() => onAdd(player.id)}
-            icon={<AddIcon />}
-            color="primary"
+            onClick={() => onRestore(player.id)}
+            icon={<PersonAddIcon />}
+            color="default"
             variant="outlined"
             clickable
+            sx={{ opacity: 0.6 }}
           />
         ))}
       </Stack>
@@ -146,13 +181,15 @@ function AvailablePlayers({ players, onAdd }) {
 
 function BattingOrder() {
   const {
-    players,
     battingOrder,
     getBattingOrderWithPlayers,
     addToBattingOrder,
     removeFromBattingOrder,
     reorderBattingOrder,
     setBattingOrder,
+    getAvailablePlayers,
+    getUnavailablePlayerObjects,
+    togglePlayerAvailability,
   } = useBaseballStore();
 
   const [activeId, setActiveId] = useState(null);
@@ -165,7 +202,9 @@ function BattingOrder() {
   );
 
   const battingOrderWithPlayers = getBattingOrderWithPlayers();
-  const availablePlayers = players.filter(
+  const allAvailable = getAvailablePlayers();
+  const unavailablePlayersList = getUnavailablePlayerObjects();
+  const availablePlayers = allAvailable.filter(
     (player) => !battingOrder.includes(player.id)
   );
 
@@ -205,8 +244,16 @@ function BattingOrder() {
   };
 
   const handleAddAllPlayers = () => {
-    const allPlayerIds = players.map(player => player.id);
-    setBattingOrder(allPlayerIds);
+    const availableIds = allAvailable.map(player => player.id);
+    setBattingOrder(availableIds);
+  };
+
+  const handleMarkUnavailable = (playerId) => {
+    togglePlayerAvailability(playerId);
+  };
+
+  const handleRestorePlayer = (playerId) => {
+    togglePlayerAvailability(playerId);
   };
 
   return (
@@ -220,7 +267,7 @@ function BattingOrder() {
             variant="outlined"
             startIcon={<PlaylistAddIcon />}
             onClick={handleAddAllPlayers}
-            disabled={players.length === 0}
+            disabled={allAvailable.length === 0}
             size="small"
           >
             Add All
@@ -256,9 +303,17 @@ function BattingOrder() {
         <AvailablePlayers
           players={availablePlayers}
           onAdd={handleAddPlayer}
+          onMarkUnavailable={handleMarkUnavailable}
         />
 
         <Divider sx={{ my: 3 }} />
+
+        <UnavailablePlayers
+          players={unavailablePlayersList}
+          onRestore={handleRestorePlayer}
+        />
+
+        {unavailablePlayersList.length > 0 && <Divider sx={{ my: 3 }} />}
 
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>

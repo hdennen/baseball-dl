@@ -5,6 +5,7 @@ export type { Player, FieldConfig, Inning, GameContext, BattingOrderEntry, Posit
 export interface BaseballStore {
   players: Player[];
   battingOrder: string[];
+  unavailablePlayers: string[];
   innings: Inning[];
   currentInningIndex: number;
   showBenchIndicators: boolean;
@@ -28,6 +29,10 @@ export interface BaseballStore {
   removeFromBattingOrder: (playerId: string) => void;
   reorderBattingOrder: (startIndex: number, endIndex: number) => void;
   setBattingOrder: (playerIds: string[]) => void;
+
+  togglePlayerAvailability: (playerId: string) => void;
+  getAvailablePlayers: () => Player[];
+  getUnavailablePlayerObjects: () => Player[];
 
   getBenchedPlayers: (inningIndex: number) => Player[];
   wasPlayerBenchedPreviously: (playerId: string) => boolean;

@@ -21,14 +21,15 @@ import { AutoAwesome as GenerateIcon } from '@mui/icons-material';
 import useBaseballStore from '../store/useBaseballStore';
 
 function GeneratePositionsModal({ open, onClose }) {
-  const { players, innings, generatePositionsForAllInnings } = useBaseballStore();
+  const { innings, generatePositionsForAllInnings, getAvailablePlayers } = useBaseballStore();
+  const availablePlayers = getAvailablePlayers();
   const [inningCount, setInningCount] = useState(6);
   const [useCurrentFieldConfig, setUseCurrentFieldConfig] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
 
   const handleGenerate = async () => {
-    if (players.length === 0) {
+    if (availablePlayers.length === 0) {
       setError('No players available. Please add players first.');
       return;
     }
@@ -75,7 +76,7 @@ function GeneratePositionsModal({ open, onClose }) {
               This will generate random position assignments for all innings based on your field configuration.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Players: {players.length} | Current Innings: {innings.length}
+              Available Players: {availablePlayers.length} | Current Innings: {innings.length}
             </Typography>
           </Box>
 
@@ -131,7 +132,7 @@ function GeneratePositionsModal({ open, onClose }) {
           onClick={handleGenerate}
           variant="contained"
           startIcon={<GenerateIcon />}
-          disabled={isGenerating || players.length === 0}
+          disabled={isGenerating || availablePlayers.length === 0}
         >
           {isGenerating ? 'Generating...' : 'Generate Positions'}
         </Button>
