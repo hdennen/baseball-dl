@@ -1,6 +1,6 @@
-import type { Player, FieldConfig, Inning, BattingOrderEntry, Position } from '@baseball-dl/shared';
+import type { Player, FieldConfig, Inning, BattingOrderEntry, Position, LineupStatus, Lineup } from '@baseball-dl/shared';
 
-export type { Player, FieldConfig, Inning, GameContext, BattingOrderEntry, Position, PositionAssignment } from '@baseball-dl/shared';
+export type { Player, FieldConfig, Inning, GameContext, BattingOrderEntry, Position, PositionAssignment, LineupStatus, Lineup } from '@baseball-dl/shared';
 
 /**
  * Web-specific GameContext with separate date/time fields.
@@ -25,6 +25,13 @@ export interface BaseballStore {
   showBenchIndicators: boolean;
   gameContext: WebGameContext;
   currentTeamId: string | null;
+  currentLineupId: string | null;
+  currentLineupStatus: LineupStatus | null;
+
+  isReadOnly: () => boolean;
+  loadLineup: (lineup: Lineup) => void;
+  clearLineup: () => void;
+  setLineupMeta: (id: string, status: LineupStatus) => void;
 
   addPlayer: (name: string) => void;
   removePlayer: (playerId: string) => void;

@@ -3,7 +3,8 @@ import useBaseballStore from '../store/useBaseballStore';
 import type { FieldConfig } from '../types';
 
 function FieldConfiguration() {
-  const { innings, currentInningIndex, toggleFieldPosition } = useBaseballStore();
+  const { innings, currentInningIndex, toggleFieldPosition, isReadOnly } = useBaseballStore();
+  const readOnly = isReadOnly();
   
   const currentInning = innings[currentInningIndex];
   const fieldConfig: FieldConfig = currentInning?.fieldConfig || {
@@ -39,6 +40,7 @@ function FieldConfiguration() {
               checked={fieldConfig['center-field']}
               onChange={() => handleToggle('center-field')}
               size="small"
+              disabled={readOnly}
             />
           }
           label={<Typography variant="body2">Center Field</Typography>}
@@ -49,6 +51,7 @@ function FieldConfiguration() {
               checked={fieldConfig['center-left-field']}
               onChange={() => handleToggle('center-left-field')}
               size="small"
+              disabled={readOnly}
             />
           }
           label={<Typography variant="body2">Center Left Field</Typography>}
@@ -59,6 +62,7 @@ function FieldConfiguration() {
               checked={fieldConfig['center-right-field']}
               onChange={() => handleToggle('center-right-field')}
               size="small"
+              disabled={readOnly}
             />
           }
           label={<Typography variant="body2">Center Right Field</Typography>}

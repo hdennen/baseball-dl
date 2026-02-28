@@ -24,6 +24,35 @@ export const TEAM_PLAYERS = gql`
   }
 `;
 
+export const TEAM_LINEUPS = gql`
+  query TeamLineups($teamId: ID!) {
+    teamLineups(teamId: $teamId) {
+      id
+      teamId
+      gameContext {
+        dateTime
+        opponent
+        location
+        side
+        notes
+      }
+      availablePlayerIds
+      battingOrder
+      innings {
+        positions
+        fieldConfig {
+          centerField
+          centerLeftField
+          centerRightField
+        }
+      }
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 // ============================================================
 // Mutations
 // ============================================================
@@ -51,5 +80,40 @@ export const CREATE_PLAYER_ON_TEAM = gql`
 export const REMOVE_PLAYER_FROM_TEAM = gql`
   mutation RemovePlayerFromTeam($playerId: ID!, $teamId: ID!) {
     removePlayerFromTeam(playerId: $playerId, teamId: $teamId)
+  }
+`;
+
+export const SAVE_LINEUP = gql`
+  mutation SaveLineup($input: SaveLineupInput!) {
+    saveLineup(input: $input) {
+      id
+      teamId
+      gameContext {
+        dateTime
+        opponent
+        location
+        side
+        notes
+      }
+      availablePlayerIds
+      battingOrder
+      innings {
+        positions
+        fieldConfig {
+          centerField
+          centerLeftField
+          centerRightField
+        }
+      }
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_LINEUP = gql`
+  mutation DeleteLineup($id: ID!) {
+    deleteLineup(id: $id)
   }
 `;

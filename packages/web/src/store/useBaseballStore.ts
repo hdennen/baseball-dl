@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { generatePositionsForAllInnings, generateCurrentInningPositions, getActivePositions as getActivePositionsFromService, fillRemainingPositions as fillRemainingPositionsService, POSITIONS } from '../services/PositionGeneratorService';
-import type { Player, FieldConfig, BattingOrderEntry, Position } from '@baseball-dl/shared';
+import type { Player, FieldConfig, BattingOrderEntry, Position, Lineup, LineupStatus } from '@baseball-dl/shared';
 import type { BaseballStore, WebGameContext } from '../types/index';
 
 const DEFAULT_FIELD_CONFIG: FieldConfig = {
@@ -33,10 +33,81 @@ const useBaseballStore = create<BaseballStore>()(
   showBenchIndicators: true,
   gameContext: { ...DEFAULT_GAME_CONTEXT },
   currentTeamId: null as string | null,
+  currentLineupId: null as string | null,
+  currentLineupStatus: null as LineupStatus | null,
+
+  isReadOnly: (): boolean => {
+    return get().currentLineupStatus === 'published';
+  },
+
+  loadLineup: (lineup: Lineup) => {
+    let date: string | null = null;
+    let time: string | null = null;
+    if (lineup.gameContext?.dateTime) {
+      const dt = new Date(lineup.gameContext.dateTime);
+      date = dt.toISOString().split('T')[0];
+      const hours = dt.getHours().toString().padStart(2, '0');
+      const minutes = dt.getMinutes().toString().padStart(2, '0');
+      time = `${hours}:${minutes}`;
+    }
+
+    const innings = lineup.innings.map((inn) => {
+      const fc = inn.fieldConfig as unknown as Record<string, boolean>;
+      return {
+        positions: inn.positions as Record<string, string>,
+        fieldConfig: {
+          'center-field': fc['center-field'] ?? fc.centerField ?? true,
+          'center-left-field': fc['center-left-field'] ?? fc.centerLeftField ?? false,
+          'center-right-field': fc['center-right-field'] ?? fc.centerRightField ?? false,
+        },
+      };
+    });
+
+    set({
+      currentLineupId: lineup.id,
+      currentLineupStatus: lineup.status,
+      battingOrder: lineup.battingOrder,
+      unavailablePlayers: [],
+      innings: innings.length > 0 ? innings : [{
+        positions: {},
+        fieldConfig: { ...DEFAULT_FIELD_CONFIG },
+      }],
+      currentInningIndex: 0,
+      gameContext: {
+        date,
+        time,
+        opponent: lineup.gameContext?.opponent ?? null,
+        location: lineup.gameContext?.location ?? null,
+        side: lineup.gameContext?.side ?? null,
+        notes: lineup.gameContext?.notes ?? null,
+      },
+    });
+  },
+
+  clearLineup: () => {
+    set({
+      currentLineupId: null,
+      currentLineupStatus: null,
+      battingOrder: [],
+      unavailablePlayers: [],
+      innings: [{
+        positions: {},
+        fieldConfig: { ...DEFAULT_FIELD_CONFIG },
+      }],
+      currentInningIndex: 0,
+      gameContext: { ...DEFAULT_GAME_CONTEXT },
+    });
+  },
+
+  setLineupMeta: (id: string, status: LineupStatus) => {
+    set({ currentLineupId: id, currentLineupStatus: status });
+  },
 
   setCurrentTeam: (teamId: string | null) => {
     set({
       currentTeamId: teamId,
+      currentLineupId: null,
+      currentLineupStatus: null,
       players: [],
       battingOrder: [],
       unavailablePlayers: [],
@@ -420,6 +491,8 @@ const useBaseballStore = create<BaseballStore>()(
       currentInningIndex: 0,
       showBenchIndicators: true,
       gameContext: { ...DEFAULT_GAME_CONTEXT },
+      currentLineupId: null,
+      currentLineupStatus: null,
     });
   },
 }),
@@ -435,6 +508,8 @@ const useBaseballStore = create<BaseballStore>()(
         showBenchIndicators: state.showBenchIndicators,
         gameContext: state.gameContext,
         currentTeamId: state.currentTeamId,
+        currentLineupId: state.currentLineupId,
+        currentLineupStatus: state.currentLineupStatus,
       }),
     }
   )

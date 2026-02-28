@@ -6,7 +6,8 @@ declare global {
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
-import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button } from '@mui/material';
+import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button, Alert } from '@mui/material';
+import { History as HistoryIcon } from '@mui/icons-material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import { useStytchUser, useStytch } from '@stytch/react';
@@ -20,6 +21,8 @@ import FieldConfiguration from './components/FieldConfiguration';
 import Login from './components/Login';
 import Authenticate from './components/Authenticate';
 import TeamManagement from './components/team/TeamManagement';
+import LineupDrawer from './components/LineupDrawer';
+import LineupActions from './components/LineupActions';
 import useBaseballStore from './store/useBaseballStore';
 
 const theme = createTheme({
@@ -34,18 +37,39 @@ const theme = createTheme({
 });
 
 function BattingOrderTab() {
-  const { players, addPlayer, removePlayer, currentTeamId } = useBaseballStore();
+  const { players, addPlayer, removePlayer, currentTeamId, currentLineupStatus } = useBaseballStore();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const isPublished = currentLineupStatus === 'published';
 
   return (
     <Box>
       <GameContext />
       {currentTeamId ? (
-        <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Chip label="Team Active" color="success" size="small" />
-          <Typography variant="body2" color="text.secondary">
-            Players are managed on the Team tab
-          </Typography>
-        </Paper>
+        <>
+          <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <Chip label="Team Active" color="success" size="small" />
+            <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+              Players are managed on the Team tab
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<HistoryIcon />}
+              onClick={() => setDrawerOpen(true)}
+            >
+              Lineups
+            </Button>
+          </Paper>
+          <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <LineupActions />
+          </Paper>
+          {isPublished && (
+            <Alert severity="info" sx={{ mb: 3 }}>
+              This lineup has been published and is read-only. Duplicate it to make changes.
+            </Alert>
+          )}
+          <LineupDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+        </>
       ) : (
         <PlayerManagement
           players={players}

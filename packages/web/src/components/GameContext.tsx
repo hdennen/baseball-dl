@@ -14,7 +14,8 @@ import useBaseballStore from '../store/useBaseballStore';
 import type { WebGameContext } from '../types';
 
 function GameContext() {
-  const { gameContext, updateGameContext } = useBaseballStore();
+  const { gameContext, updateGameContext, isReadOnly } = useBaseballStore();
+  const readOnly = isReadOnly();
 
   const handleChange = (field: keyof WebGameContext) => (e: React.ChangeEvent<HTMLInputElement>) => {
     updateGameContext({ [field]: e.target.value || null });
@@ -41,6 +42,7 @@ function GameContext() {
             InputLabelProps={{ shrink: true }}
             value={gameContext.date ?? ''}
             onChange={handleChange('date')}
+            disabled={readOnly}
           />
           <TextField
             label="Time"
@@ -49,18 +51,21 @@ function GameContext() {
             InputLabelProps={{ shrink: true }}
             value={gameContext.time ?? ''}
             onChange={handleChange('time')}
+            disabled={readOnly}
           />
           <TextField
             label="Opponent"
             size="small"
             value={gameContext.opponent ?? ''}
             onChange={handleChange('opponent')}
+            disabled={readOnly}
           />
           <TextField
             label="Location"
             size="small"
             value={gameContext.location ?? ''}
             onChange={handleChange('location')}
+            disabled={readOnly}
           />
           <ToggleButtonGroup
             value={gameContext.side}
@@ -68,6 +73,7 @@ function GameContext() {
             onChange={handleSideChange}
             size="small"
             aria-label="home or away"
+            disabled={readOnly}
           >
             <ToggleButton value="home">Home</ToggleButton>
             <ToggleButton value="away">Away</ToggleButton>
@@ -82,6 +88,7 @@ function GameContext() {
           value={gameContext.notes ?? ''}
           onChange={handleChange('notes')}
           sx={{ mt: 2 }}
+          disabled={readOnly}
         />
       </AccordionDetails>
     </Accordion>

@@ -41,20 +41,23 @@ interface SortableBattingOrderItemProps {
   player: Player;
   order: number;
   onRemove: (playerId: string) => void;
+  readOnly?: boolean;
 }
 
 interface AvailablePlayersProps {
   players: Player[];
   onAdd: (playerId: string) => void;
   onMarkUnavailable: (playerId: string) => void;
+  readOnly?: boolean;
 }
 
 interface UnavailablePlayersProps {
   players: Player[];
   onRestore: (playerId: string) => void;
+  readOnly?: boolean;
 }
 
-function SortableBattingOrderItem({ player, order, onRemove }: SortableBattingOrderItemProps) {
+function SortableBattingOrderItem({ player, order, onRemove, readOnly }: SortableBattingOrderItemProps) {
   const {
     attributes,
     listeners,
@@ -62,7 +65,7 @@ function SortableBattingOrderItem({ player, order, onRemove }: SortableBattingOr
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: player.id });
+  } = useSortable({ id: player.id, disabled: readOnly });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -88,21 +91,23 @@ function SortableBattingOrderItem({ player, order, onRemove }: SortableBattingOr
         },
       }}
     >
-      <Box
-        {...attributes}
-        {...listeners}
-        sx={{
-          cursor: 'grab',
-          display: 'flex',
-          alignItems: 'center',
-          color: 'grey.500',
-          '&:hover': {
-            color: 'primary.main',
-          },
-        }}
-      >
-        <DragIcon fontSize="small" />
-      </Box>
+      {!readOnly && (
+        <Box
+          {...attributes}
+          {...listeners}
+          sx={{
+            cursor: 'grab',
+            display: 'flex',
+            alignItems: 'center',
+            color: 'grey.500',
+            '&:hover': {
+              color: 'primary.main',
+            },
+          }}
+        >
+          <DragIcon fontSize="small" />
+        </Box>
+      )}
       
       <Box
         sx={{
@@ -125,19 +130,21 @@ function SortableBattingOrderItem({ player, order, onRemove }: SortableBattingOr
         {player.name}
       </Typography>
       
-      <Button
-        size="small"
-        color="error"
-        onClick={() => onRemove(player.id)}
-        sx={{ minWidth: 'auto', p: 0.5 }}
-      >
-        <RemoveIcon fontSize="small" />
-      </Button>
+      {!readOnly && (
+        <Button
+          size="small"
+          color="error"
+          onClick={() => onRemove(player.id)}
+          sx={{ minWidth: 'auto', p: 0.5 }}
+        >
+          <RemoveIcon fontSize="small" />
+        </Button>
+      )}
     </Box>
   );
 }
 
-function AvailablePlayers({ players, onAdd, onMarkUnavailable }: AvailablePlayersProps) {
+function AvailablePlayers({ players, onAdd, onMarkUnavailable, readOnly }: AvailablePlayersProps) {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
@@ -153,13 +160,13 @@ function AvailablePlayers({ players, onAdd, onMarkUnavailable }: AvailablePlayer
             <Chip
               key={player.id}
               label={player.name}
-              onClick={() => onAdd(player.id)}
-              onDelete={() => onMarkUnavailable(player.id)}
-              deleteIcon={<PersonOffIcon fontSize="small" />}
-              icon={<AddIcon />}
+              onClick={readOnly ? undefined : () => onAdd(player.id)}
+              onDelete={readOnly ? undefined : () => onMarkUnavailable(player.id)}
+              deleteIcon={readOnly ? undefined : <PersonOffIcon fontSize="small" />}
+              icon={readOnly ? undefined : <AddIcon />}
               color="primary"
               variant="outlined"
-              clickable
+              clickable={!readOnly}
             />
           ))}
         </Stack>
@@ -168,7 +175,7 @@ function AvailablePlayers({ players, onAdd, onMarkUnavailable }: AvailablePlayer
   );
 }
 
-function UnavailablePlayers({ players, onRestore }: UnavailablePlayersProps) {
+function UnavailablePlayers({ players, onRestore, readOnly }: UnavailablePlayersProps) {
   if (players.length === 0) return null;
 
   return (
@@ -181,11 +188,11 @@ function UnavailablePlayers({ players, onRestore }: UnavailablePlayersProps) {
           <Chip
             key={player.id}
             label={player.name}
-            onClick={() => onRestore(player.id)}
-            icon={<PersonAddIcon />}
+            onClick={readOnly ? undefined : () => onRestore(player.id)}
+            icon={readOnly ? undefined : <PersonAddIcon />}
             color="default"
             variant="outlined"
-            clickable
+            clickable={!readOnly}
             sx={{ opacity: 0.6 }}
           />
         ))}
@@ -205,7 +212,9 @@ function BattingOrder() {
     getAvailablePlayers,
     getUnavailablePlayerObjects,
     togglePlayerAvailability,
+    isReadOnly,
   } = useBaseballStore();
+  const readOnly = isReadOnly();
 
   const [_activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
@@ -277,36 +286,38 @@ function BattingOrder() {
         <Typography variant="h5">
           Batting Order
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            variant="outlined"
-            startIcon={<PlaylistAddIcon />}
-            onClick={handleAddAllPlayers}
-            disabled={allAvailable.length === 0}
-            size="small"
-          >
-            Add All
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ShuffleIcon />}
-            onClick={handleShuffleOrder}
-            disabled={battingOrder.length < 2}
-            size="small"
-          >
-            Shuffle
-          </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<ClearIcon />}
-            onClick={handleClearOrder}
-            disabled={battingOrder.length === 0}
-            size="small"
-          >
-            Clear
-          </Button>
-        </Box>
+        {!readOnly && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              startIcon={<PlaylistAddIcon />}
+              onClick={handleAddAllPlayers}
+              disabled={allAvailable.length === 0}
+              size="small"
+            >
+              Add All
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<ShuffleIcon />}
+              onClick={handleShuffleOrder}
+              disabled={battingOrder.length < 2}
+              size="small"
+            >
+              Shuffle
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<ClearIcon />}
+              onClick={handleClearOrder}
+              disabled={battingOrder.length === 0}
+              size="small"
+            >
+              Clear
+            </Button>
+          </Box>
+        )}
       </Box>
 
       <DndContext
@@ -319,6 +330,7 @@ function BattingOrder() {
           players={availablePlayers}
           onAdd={handleAddPlayer}
           onMarkUnavailable={handleMarkUnavailable}
+          readOnly={readOnly}
         />
 
         <Divider sx={{ my: 3 }} />
@@ -326,6 +338,7 @@ function BattingOrder() {
         <UnavailablePlayers
           players={unavailablePlayersList}
           onRestore={handleRestorePlayer}
+          readOnly={readOnly}
         />
 
         {unavailablePlayersList.length > 0 && <Divider sx={{ my: 3 }} />}
@@ -361,6 +374,7 @@ function BattingOrder() {
                     player={item.player!}
                     order={item.order}
                     onRemove={handleRemovePlayer}
+                    readOnly={readOnly}
                   />
                 ))}
               </Stack>

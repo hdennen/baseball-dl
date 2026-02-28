@@ -48,9 +48,10 @@ interface SortableTabProps {
   onClick: () => void;
   onDelete?: (e: React.MouseEvent) => void;
   label: string;
+  dragDisabled?: boolean;
 }
 
-function SortableTab({ index, isActive, onClick, onDelete, label }: SortableTabProps) {
+function SortableTab({ index, isActive, onClick, onDelete, label, dragDisabled }: SortableTabProps) {
   const {
     attributes,
     listeners,
@@ -77,23 +78,25 @@ function SortableTab({ index, isActive, onClick, onDelete, label }: SortableTabP
         borderColor: 'divider',
       }}
     >
-      <Box
-        {...listeners}
-        {...attributes}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          cursor: isDragging ? 'grabbing' : 'grab',
-          px: 0.5,
-          py: 1,
-          touchAction: 'none',
-          '&:hover': {
-            bgcolor: 'action.hover',
-          },
-        }}
-      >
-        <DragIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-      </Box>
+      {!dragDisabled && (
+        <Box
+          {...listeners}
+          {...attributes}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            cursor: isDragging ? 'grabbing' : 'grab',
+            px: 0.5,
+            py: 1,
+            touchAction: 'none',
+            '&:hover': {
+              bgcolor: 'action.hover',
+            },
+          }}
+        >
+          <DragIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+        </Box>
+      )}
       <Tab
         label={label}
         onClick={onClick}
@@ -133,7 +136,9 @@ function InningManager() {
     removeInning,
     reorderInnings,
     clearAllData,
+    isReadOnly,
   } = useBaseballStore();
+  const readOnly = isReadOnly();
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
@@ -195,65 +200,68 @@ function InningManager() {
                   label={`Inning ${index + 1}`}
                   isActive={currentInningIndex === index}
                   onClick={() => setCurrentInning(index)}
-                  onDelete={innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
+                  onDelete={!readOnly && innings.length > 1 ? (e) => handleDeleteInning(index, e) : undefined}
+                  dragDisabled={readOnly}
                 />
               ))}
             </Box>
           </SortableContext>
         </DndContext>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1 }}>
-          <ButtonGroup size="small" variant="outlined" disabled={innings.length >= 9}>
-            <Tooltip title="Add Empty Inning">
+        {!readOnly && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1 }}>
+            <ButtonGroup size="small" variant="outlined" disabled={innings.length >= 9}>
+              <Tooltip title="Add Empty Inning">
+                <Button
+                  onClick={addEmptyInning}
+                  startIcon={<AddIcon />}
+                >
+                  Empty
+                </Button>
+              </Tooltip>
+              <Tooltip title="Add Inning with Carry-Over">
+                <Button
+                  onClick={addInningWithCarryOver}
+                  disabled={innings.length === 0}
+                  startIcon={<CopyIcon />}
+                >
+                  Copy
+                </Button>
+              </Tooltip>
+            </ButtonGroup>
+            
+            <Tooltip title="Generate Positions for All Innings">
               <Button
-                onClick={addEmptyInning}
-                startIcon={<AddIcon />}
+                size="small"
+                variant="outlined"
+                startIcon={<GenerateIcon />}
+                onClick={() => setGenerateModalOpen(true)}
+                sx={{ ml: 1 }}
               >
-                Empty
+                Generate
               </Button>
             </Tooltip>
-            <Tooltip title="Add Inning with Carry-Over">
-              <Button
-                onClick={addInningWithCarryOver}
-                disabled={innings.length === 0}
-                startIcon={<CopyIcon />}
-              >
-                Copy
-              </Button>
+            
+            <Tooltip title="More Options">
+              <IconButton size="small" onClick={handleMenuOpen}>
+                <MoreIcon />
+              </IconButton>
             </Tooltip>
-          </ButtonGroup>
-          
-          <Tooltip title="Generate Positions for All Innings">
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<GenerateIcon />}
-              onClick={() => setGenerateModalOpen(true)}
-              sx={{ ml: 1 }}
-            >
-              Generate
-            </Button>
-          </Tooltip>
-          
-          <Tooltip title="More Options">
-            <IconButton size="small" onClick={handleMenuOpen}>
-              <MoreIcon />
-            </IconButton>
-          </Tooltip>
 
-          <Menu
-            anchorEl={menuAnchorEl}
-            open={Boolean(menuAnchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={() => { setConfirmDialogOpen(true); handleMenuClose(); }}>
-              <ListItemIcon>
-                <ClearIcon fontSize="small" color="error" />
-              </ListItemIcon>
-              <ListItemText>Clear All Data</ListItemText>
-            </MenuItem>
-          </Menu>
-        </Box>
+            <Menu
+              anchorEl={menuAnchorEl}
+              open={Boolean(menuAnchorEl)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem onClick={() => { setConfirmDialogOpen(true); handleMenuClose(); }}>
+                <ListItemIcon>
+                  <ClearIcon fontSize="small" color="error" />
+                </ListItemIcon>
+                <ListItemText>Clear All Data</ListItemText>
+              </MenuItem>
+            </Menu>
+          </Box>
+        )}
       </Box>
       
       <Dialog

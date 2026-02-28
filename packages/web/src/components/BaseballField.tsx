@@ -29,8 +29,11 @@ interface BenchPlayerProps {
 }
 
 function DraggablePlayer({ player, position }: DraggablePlayerProps) {
+  const { isReadOnly } = useBaseballStore();
+  const readOnly = isReadOnly();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: player.id,
+    disabled: readOnly,
     data: {
       player,
       position,
@@ -43,13 +46,13 @@ function DraggablePlayer({ player, position }: DraggablePlayerProps) {
   };
 
   return (
-    <Box ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <Box ref={setNodeRef} style={style} {...(readOnly ? {} : { ...listeners, ...attributes })}>
       <Chip
         label={player.name}
         color="success"
         size="small"
         sx={{
-          cursor: isDragging ? 'grabbing' : 'grab',
+          cursor: readOnly ? 'default' : isDragging ? 'grabbing' : 'grab',
         }}
       />
     </Box>
@@ -101,8 +104,11 @@ function PositionSlot({ position, player }: PositionSlotProps) {
 }
 
 function BenchPlayer({ player, showBenchIndicator, wasBenched }: BenchPlayerProps) {
+  const { isReadOnly } = useBaseballStore();
+  const readOnly = isReadOnly();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: player.id,
+    disabled: readOnly,
     data: {
       player,
       fromBench: true,
@@ -115,7 +121,7 @@ function BenchPlayer({ player, showBenchIndicator, wasBenched }: BenchPlayerProp
   };
 
   return (
-    <Box ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <Box ref={setNodeRef} style={style} {...(readOnly ? {} : { ...listeners, ...attributes })}>
       <Chip
         label={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -134,7 +140,7 @@ function BenchPlayer({ player, showBenchIndicator, wasBenched }: BenchPlayerProp
         variant="outlined"
         size="medium"
         sx={{
-          cursor: isDragging ? 'grabbing' : 'grab',
+          cursor: readOnly ? 'default' : isDragging ? 'grabbing' : 'grab',
         }}
       />
     </Box>
@@ -152,8 +158,10 @@ function BaseballField() {
     getActivePositions,
     showBenchIndicators,
     toggleBenchIndicators,
-    wasPlayerBenchedPreviously
+    wasPlayerBenchedPreviously,
+    isReadOnly,
   } = useBaseballStore();
+  const readOnly = isReadOnly();
   
   const currentInning = innings[currentInningIndex] || { positions: {}, fieldConfig: {} };
   const benchedPlayers = getBenchedPlayers(currentInningIndex);
@@ -189,22 +197,24 @@ function BaseballField() {
               {showBenchIndicators ? <VisibilityIcon /> : <VisibilityOffIcon />}
             </IconButton>
           </Tooltip>
-          <ButtonGroup size="small" variant="outlined">
-            <Button
-              startIcon={<ShuffleIcon />}
-              onClick={randomlyAssignPlayers}
-              disabled={players.length === 0}
-            >
-              Random Positions
-            </Button>
-            <Button
-              startIcon={<FillIcon />}
-              onClick={fillRemainingPositions}
-              disabled={players.length === 0 || benchedPlayers.length === 0}
-            >
-              Fill Remaining
-            </Button>
-          </ButtonGroup>
+          {!readOnly && (
+            <ButtonGroup size="small" variant="outlined">
+              <Button
+                startIcon={<ShuffleIcon />}
+                onClick={randomlyAssignPlayers}
+                disabled={players.length === 0}
+              >
+                Random Positions
+              </Button>
+              <Button
+                startIcon={<FillIcon />}
+                onClick={fillRemainingPositions}
+                disabled={players.length === 0 || benchedPlayers.length === 0}
+              >
+                Fill Remaining
+              </Button>
+            </ButtonGroup>
+          )}
         </Box>
       </Box>
       
