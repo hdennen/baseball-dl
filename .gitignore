@@ -19,6 +19,9 @@ packages/*/dist
 dist-ssr
 *.local
 
+# API env
+packages/api/.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

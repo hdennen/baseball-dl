@@ -6,6 +6,9 @@
     "dev": "npm run dev --workspace=@baseball-dl/web",
     "dev:api": "npm run dev --workspace=@baseball-dl/api",
     "build": "npm run build --workspace=@baseball-dl/web",
-    "preview": "npm run preview --workspace=@baseball-dl/web"
+    "preview": "npm run preview --workspace=@baseball-dl/web",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d"
   }
 }
