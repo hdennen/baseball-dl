@@ -15,11 +15,16 @@ if (!DATABASE_URL) {
 }
 
 const PORT = parseInt(process.env.PORT ?? '4000', 10);
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173'];
 
 const pool = createPool(DATABASE_URL);
 const dal = createDAL(pool);
 
 const app = express();
+
+app.get('/health', (_req, res) => res.send('ok'));
 
 const server = new ApolloServer<ApiContext>({
   typeDefs,
@@ -30,7 +35,7 @@ await server.start();
 
 app.use(
   '/graphql',
-  cors<cors.CorsRequest>(),
+  cors<cors.CorsRequest>({ origin: ALLOWED_ORIGINS }),
   express.json(),
   expressMiddleware(server, {
     context: createContextBuilder(dal),
