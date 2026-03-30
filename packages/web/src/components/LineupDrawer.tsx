@@ -201,44 +201,40 @@ export default function LineupDrawer({ open, onClose }: LineupDrawerProps) {
                 key={lineup.id}
                 disablePadding
                 secondaryAction={
-                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Chip
+                      label={lineup.status === 'published' ? 'Published' : 'Draft'}
+                      color={lineup.status === 'published' ? 'success' : 'default'}
+                      size="small"
+                      variant="outlined"
+                    />
                     <Tooltip title="Clone as draft">
                       <IconButton size="small" onClick={() => handleClone(lineup)}>
                         <CloneIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    {lineup.status === 'draft' && (
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          onClick={() => setDeleteTarget(lineup)}
-                          color="error"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    )}
+                    <Tooltip title="Delete">
+                      <IconButton
+                        size="small"
+                        onClick={() => setDeleteTarget(lineup)}
+                        color="error"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
                 }
               >
                 <ListItemButton
                   selected={isActive}
                   onClick={() => handleLoad(lineup)}
-                  sx={{ pr: 10 }}
+                  sx={{ pr: 22 }}
                 >
                   <ListItemText
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body1" noWrap sx={{ flex: 1 }}>
-                          {opponent}
-                        </Typography>
-                        <Chip
-                          label={lineup.status === 'published' ? 'Published' : 'Draft'}
-                          color={lineup.status === 'published' ? 'success' : 'default'}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </Box>
+                      <Typography variant="body1" noWrap>
+                        {opponent}
+                      </Typography>
                     }
                     secondary={
                       <Typography variant="caption" color="text.secondary">
@@ -258,7 +254,7 @@ export default function LineupDrawer({ open, onClose }: LineupDrawerProps) {
         <DialogTitle>Delete Lineup?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Delete the lineup vs {deleteTarget?.gameContext?.opponent || 'unknown opponent'}? This cannot be undone.
+            Delete the {deleteTarget?.status === 'published' ? 'published ' : ''}lineup vs {deleteTarget?.gameContext?.opponent || 'unknown opponent'}? This cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
