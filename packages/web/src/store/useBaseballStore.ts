@@ -68,7 +68,9 @@ const useBaseballStore = create<BaseballStore>()(
       currentLineupId: lineup.id,
       currentLineupStatus: lineup.status,
       battingOrder: lineup.battingOrder,
-      unavailablePlayers: [],
+      unavailablePlayers: get().players
+        .map((p) => p.id)
+        .filter((id) => !lineup.availablePlayerIds.includes(id)),
       innings: innings.length > 0 ? innings : [{
         positions: {},
         fieldConfig: { ...DEFAULT_FIELD_CONFIG },
