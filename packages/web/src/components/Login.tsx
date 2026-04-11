@@ -15,7 +15,13 @@ const Login = () => {
   }, [user, navigate]);
 
   const config = {
-    products: [Products.emailMagicLinks],
+    products: [Products.passwords, Products.emailMagicLinks],
+    passwordOptions: {
+      loginRedirectURL: window.location.origin + '/authenticate',
+      loginExpirationMinutes: 60,
+      resetPasswordRedirectURL: window.location.origin + '/password-reset',
+      resetPasswordExpirationMinutes: 60,
+    },
     emailMagicLinksOptions: {
       loginRedirectURL: window.location.origin + '/authenticate',
       signupRedirectURL: window.location.origin + '/authenticate',

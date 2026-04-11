@@ -6,7 +6,7 @@ declare global {
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
-import { Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button } from '@mui/material';
+import { Alert, Container, Box, Typography, Tabs, Tab, ThemeProvider, createTheme, Chip, Paper, Button, Snackbar } from '@mui/material';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import { useStytchUser, useStytch } from '@stytch/react';
@@ -19,6 +19,7 @@ import InningsSummary from './components/InningsSummary';
 import FieldConfiguration from './components/FieldConfiguration';
 import Login from './components/Login';
 import Authenticate from './components/Authenticate';
+import ResetPassword from './components/ResetPassword';
 import TeamManagement from './components/team/TeamManagement';
 import TeamLineupBar from './components/TeamLineupBar';
 import useBaseballStore from './store/useBaseballStore';
@@ -56,6 +57,8 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [passwordResetLoading, setPasswordResetLoading] = useState(false);
+  const [passwordResetNotice, setPasswordResetNotice] = useState<{ message: string; severity: 'success' | 'error' } | null>(null);
   const { assignPosition, players, currentTeamId } = useBaseballStore();
   const { user } = useStytchUser();
   const stytch = useStytch();
@@ -133,6 +136,38 @@ function App() {
     setActiveId(null);
   };
 
+  const handleStartPasswordReset = async () => {
+    const email = user?.emails?.[0]?.email;
+    if (!email) {
+      setPasswordResetNotice({
+        message: 'No email found on your account.',
+        severity: 'error',
+      });
+      return;
+    }
+
+    setPasswordResetLoading(true);
+    try {
+      await stytch.passwords.resetByEmailStart({
+        email,
+        reset_password_redirect_url: `${window.location.origin}/password-reset`,
+        login_redirect_url: `${window.location.origin}/authenticate`,
+      });
+      setPasswordResetNotice({
+        message: 'Password reset email sent. Check your inbox.',
+        severity: 'success',
+      });
+    } catch (err) {
+      console.error('Unable to start password reset flow:', err);
+      setPasswordResetNotice({
+        message: 'Could not send password reset email. Please try again.',
+        severity: 'error',
+      });
+    } finally {
+      setPasswordResetLoading(false);
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <DndContext 
@@ -161,6 +196,14 @@ function App() {
                   <Typography variant="body2" color="text.secondary">
                     {user.emails?.[0]?.email}
                   </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    disabled={passwordResetLoading}
+                    onClick={handleStartPasswordReset}
+                  >
+                    Set / Reset Password
+                  </Button>
                   <Button
                     variant="outlined"
                     size="small"
@@ -211,6 +254,8 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/authenticate" element={<Authenticate />} />
+            <Route path="/password-reset" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<Navigate to="/batting" replace />} />
             <Route path="/team" element={<TeamManagement />} />
             <Route path="/batting" element={
@@ -241,6 +286,20 @@ function App() {
             />
           ) : null}
         </DragOverlay>
+        <Snackbar
+          open={Boolean(passwordResetNotice)}
+          autoHideDuration={5000}
+          onClose={() => setPasswordResetNotice(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            severity={passwordResetNotice?.severity ?? 'success'}
+            onClose={() => setPasswordResetNotice(null)}
+            sx={{ width: '100%' }}
+          >
+            {passwordResetNotice?.message ?? ''}
+          </Alert>
+        </Snackbar>
       </DndContext>
     </ThemeProvider>
   );
