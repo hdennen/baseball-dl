@@ -67,6 +67,7 @@ export interface TeamPlayer extends AuditFields {
   name: string;
   number: number | null;
   rosterEntryId: string;
+  removedAt?: string | null;
 }
 
 export interface PlayerRelationship extends AuditFields {

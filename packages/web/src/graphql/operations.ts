@@ -24,6 +24,18 @@ export const TEAM_PLAYERS = gql`
   }
 `;
 
+export const TEAM_PLAYERS_FULL = gql`
+  query TeamPlayersFull($teamId: ID!) {
+    teamPlayersFull(teamId: $teamId) {
+      id
+      name
+      number
+      rosterEntryId
+      removedAt
+    }
+  }
+`;
+
 export const TEAM_LINEUPS = gql`
   query TeamLineups($teamId: ID!) {
     teamLineups(teamId: $teamId) {

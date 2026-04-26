@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { generatePositionsForAllInnings, generateCurrentInningPositions, getActivePositions as getActivePositionsFromService, fillRemainingPositions as fillRemainingPositionsService, POSITIONS } from '../services/PositionGeneratorService';
-import type { Player, FieldConfig, BattingOrderEntry, Position, Lineup, LineupStatus } from '@baseball-dl/shared';
+import type { Player, FieldConfig, BattingOrderEntry, Position, Lineup, LineupStatus, TeamPlayer } from '@baseball-dl/shared';
 import type { BaseballStore, WebGameContext } from '../types/index';
 
 const DEFAULT_FIELD_CONFIG: FieldConfig = {
@@ -23,6 +23,7 @@ const useBaseballStore = create<BaseballStore>()(
   persist(
     (set, get) => ({
   players: [] as Player[],
+  allTeamPlayers: [] as TeamPlayer[],
   battingOrder: [] as string[],
   unavailablePlayers: [] as string[],
   innings: [{
@@ -52,10 +53,28 @@ const useBaseballStore = create<BaseballStore>()(
       time = `${hours}:${minutes}`;
     }
 
+    const removedPlayerIds = new Set(
+      get().allTeamPlayers
+        .filter((p) => p.removedAt)
+        .map((p) => p.id)
+    );
+    const shouldFilterRemoved = lineup.status === 'draft' && removedPlayerIds.size > 0;
+
+    let battingOrder = lineup.battingOrder;
+    let availablePlayerIds = lineup.availablePlayerIds;
+
     const innings = lineup.innings.map((inn) => {
       const fc = inn.fieldConfig as unknown as Record<string, boolean>;
+      let positions = inn.positions as Record<string, string>;
+
+      if (shouldFilterRemoved) {
+        positions = Object.fromEntries(
+          Object.entries(positions).filter(([, pId]) => !removedPlayerIds.has(pId))
+        );
+      }
+
       return {
-        positions: inn.positions as Record<string, string>,
+        positions,
         fieldConfig: {
           'center-field': fc['center-field'] ?? fc.centerField ?? true,
           'center-left-field': fc['center-left-field'] ?? fc.centerLeftField ?? false,
@@ -64,13 +83,18 @@ const useBaseballStore = create<BaseballStore>()(
       };
     });
 
+    if (shouldFilterRemoved) {
+      battingOrder = battingOrder.filter((id) => !removedPlayerIds.has(id));
+      availablePlayerIds = availablePlayerIds.filter((id) => !removedPlayerIds.has(id));
+    }
+
     set({
       currentLineupId: lineup.id,
       currentLineupStatus: lineup.status,
-      battingOrder: lineup.battingOrder,
+      battingOrder,
       unavailablePlayers: get().players
         .map((p) => p.id)
-        .filter((id) => !lineup.availablePlayerIds.includes(id)),
+        .filter((id) => !availablePlayerIds.includes(id)),
       innings: innings.length > 0 ? innings : [{
         positions: {},
         fieldConfig: { ...DEFAULT_FIELD_CONFIG },
@@ -113,6 +137,7 @@ const useBaseballStore = create<BaseballStore>()(
       currentLineupId: null,
       currentLineupStatus: null,
       players: [],
+      allTeamPlayers: [],
       battingOrder: [],
       unavailablePlayers: [],
       innings: [{
@@ -125,6 +150,10 @@ const useBaseballStore = create<BaseballStore>()(
 
   loadTeamPlayers: (players: Player[]) => {
     set({ players });
+  },
+
+  loadAllTeamPlayers: (players: TeamPlayer[]) => {
+    set({ allTeamPlayers: players });
   },
 
   migrateToTeam: (teamId: string, idMap: Record<string, string>) => {
@@ -160,17 +189,27 @@ const useBaseballStore = create<BaseballStore>()(
   },
 
   removePlayer: (playerId: string) => {
-    set((state) => ({
-      players: state.players.filter((p) => p.id !== playerId),
-      battingOrder: state.battingOrder.filter((id) => id !== playerId),
-      unavailablePlayers: state.unavailablePlayers.filter((id) => id !== playerId),
-      innings: state.innings.map((inning) => ({
-        positions: Object.fromEntries(
-          Object.entries(inning.positions).filter(([, pId]) => pId !== playerId)
-        ),
-        fieldConfig: inning.fieldConfig,
-      })),
-    }));
+    set((state) => {
+      const isPublished = state.currentLineupStatus === 'published';
+
+      if (isPublished) {
+        return {
+          players: state.players.filter((p) => p.id !== playerId),
+        };
+      }
+
+      return {
+        players: state.players.filter((p) => p.id !== playerId),
+        battingOrder: state.battingOrder.filter((id) => id !== playerId),
+        unavailablePlayers: state.unavailablePlayers.filter((id) => id !== playerId),
+        innings: state.innings.map((inning) => ({
+          positions: Object.fromEntries(
+            Object.entries(inning.positions).filter(([, pId]) => pId !== playerId)
+          ),
+          fieldConfig: inning.fieldConfig,
+        })),
+      };
+    });
   },
 
   assignPosition: (position: string, playerId: string | null) => {
@@ -446,12 +485,30 @@ const useBaseballStore = create<BaseballStore>()(
     return state.players.filter((p) => state.unavailablePlayers.includes(p.id));
   },
 
+  getPlayerById: (playerId: string): Player | undefined => {
+    const state = get();
+    const active = state.players.find(p => p.id === playerId);
+    if (active) return active;
+    const fromFull = state.allTeamPlayers.find(p => p.id === playerId);
+    if (fromFull) return { id: fromFull.id, name: fromFull.name, createdBy: fromFull.createdBy, createdAt: fromFull.createdAt, updatedAt: fromFull.updatedAt };
+    return undefined;
+  },
+
+  isPlayerRemoved: (playerId: string): boolean => {
+    const state = get();
+    const tp = state.allTeamPlayers.find(p => p.id === playerId);
+    return !!tp?.removedAt;
+  },
+
   getBattingOrderWithPlayers: (): BattingOrderEntry[] => {
     const state = get();
     return state.battingOrder.map((playerId, index) => ({
       order: index + 1,
       playerId,
-      player: state.players.find(p => p.id === playerId),
+      player: state.players.find(p => p.id === playerId)
+        ?? (state.allTeamPlayers.find(p => p.id === playerId)
+          ? { id: playerId, name: state.allTeamPlayers.find(p => p.id === playerId)!.name, createdBy: '', createdAt: '', updatedAt: '' }
+          : undefined),
     })).filter(item => item.player);
   },
 
@@ -486,6 +543,7 @@ const useBaseballStore = create<BaseballStore>()(
   clearAllData: () => {
     set({
       players: [],
+      allTeamPlayers: [],
       battingOrder: [],
       unavailablePlayers: [],
       innings: [{
@@ -505,6 +563,7 @@ const useBaseballStore = create<BaseballStore>()(
       version: 1,
       partialize: (state) => ({
         players: state.players,
+        allTeamPlayers: state.allTeamPlayers,
         battingOrder: state.battingOrder,
         unavailablePlayers: state.unavailablePlayers,
         innings: state.innings,

@@ -265,6 +265,23 @@ export function createDAL(pool: Pool) {
       }));
     },
 
+    async getTeamPlayersFull(teamId: string, userId: string) {
+      const { rows } = await pool.query(
+        'SELECT * FROM get_team_players_full($1, $2)',
+        [teamId, userId]
+      );
+      return rows.map((row) => ({
+        id: row.out_player_id as string,
+        name: row.out_name as string,
+        number: (row.out_number ?? null) as number | null,
+        rosterEntryId: row.out_roster_entry_id as string,
+        removedAt: row.out_removed_at ? toISOString(row.out_removed_at) : null,
+        createdBy: row.out_created_by as string,
+        createdAt: toISOString(row.out_created_at),
+        updatedAt: toISOString(row.out_updated_at),
+      }));
+    },
+
     // ============================================================
     // Lineup
     // ============================================================

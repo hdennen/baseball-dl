@@ -69,8 +69,31 @@ React Router v7 with tab-based navigation: `/batting`, `/lineup`, `/innings`, `/
 4. `npm run dev` to start web on :5173
 5. API uses `x-user-id` header for auth during development
 
+## Database Migrations
+
+Schema and stored procedures for local dev live in `db/init/` (auto-run by Docker on first container start). For production (Neon), incremental migrations live in `db/migrations/` as numbered SQL files.
+
+### Local
+
+`npm run db:reset` destroys and recreates the database from `db/init/` files. No migration runner needed locally.
+
+### Production (Neon)
+
+Migrations are applied manually via the Neon MCP `run_sql` tool or the Neon SQL Editor. Each migration file is idempotent (uses `IF NOT EXISTS`, `CREATE OR REPLACE`, etc.) so it is safe to re-run.
+
+```
+db/migrations/
+  001_soft_delete_roster.sql   # Soft-delete for roster_entries
+```
+
+When adding a new migration:
+1. Create `db/migrations/NNN_description.sql` with idempotent DDL + stored proc updates.
+2. Keep `db/init/` files in sync so `db:reset` produces an identical schema.
+3. Test locally with `npm run db:reset && npm run test:api`.
+4. Apply to Neon via MCP or SQL Editor.
+
 ## Deployment
 
 - **Web**: Vercel, Root Directory = `packages/web`
 - **API**: Not yet deployed (candidates: Railway, Fly.io)
-- **Database**: Not yet deployed (candidate: Neon Postgres free tier)
+- **Database**: Neon Postgres (project: "Lineup Manager", region: us-east-1)

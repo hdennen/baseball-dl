@@ -67,11 +67,15 @@ CREATE TABLE roster_entries (
   player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
   team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
   number INTEGER,
+  removed_at TIMESTAMPTZ DEFAULT NULL,
   created_by UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(player_id, team_id)
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX idx_roster_entries_active
+  ON roster_entries(player_id, team_id)
+  WHERE removed_at IS NULL;
 
 -- Links a user (parent/guardian) to a player (their child).
 -- Points at the player (person), not a roster entry.

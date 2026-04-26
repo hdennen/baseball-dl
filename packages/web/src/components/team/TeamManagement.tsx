@@ -23,6 +23,7 @@ import {
   CREATE_PLAYER_ON_TEAM,
   REMOVE_PLAYER_FROM_TEAM,
   TEAM_PLAYERS,
+  TEAM_PLAYERS_FULL,
 } from '../../graphql/operations';
 import type { Team, TeamPlayer } from '@baseball-dl/shared';
 
@@ -42,13 +43,17 @@ function TeamManagement() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [pendingTeam, setPendingTeam] = useState<Team | null>(null);
   const [importing, setImporting] = useState(false);
+  const [removeConfirmPlayer, setRemoveConfirmPlayer] = useState<string | null>(null);
 
   const [createPlayer] = useMutation<{ createPlayerOnTeam: TeamPlayer }>(CREATE_PLAYER_ON_TEAM, {
     refetchQueries: [{ query: TEAM_PLAYERS, variables: { teamId: currentTeamId } }],
   });
 
-  const [removePlayer] = useMutation(REMOVE_PLAYER_FROM_TEAM, {
-    refetchQueries: [{ query: TEAM_PLAYERS, variables: { teamId: currentTeamId } }],
+  const [removePlayerMutation] = useMutation(REMOVE_PLAYER_FROM_TEAM, {
+    refetchQueries: [
+      { query: TEAM_PLAYERS, variables: { teamId: currentTeamId } },
+      { query: TEAM_PLAYERS_FULL, variables: { teamId: currentTeamId } },
+    ],
   });
 
   const hasLocalData = () => {
@@ -108,9 +113,14 @@ function TeamManagement() {
     await createPlayer({ variables: { teamId: currentTeamId, name } });
   };
 
-  const handleRemovePlayer = async (playerId: string) => {
-    if (!currentTeamId) return;
-    await removePlayer({ variables: { playerId, teamId: currentTeamId } });
+  const handleRemovePlayer = (playerId: string) => {
+    setRemoveConfirmPlayer(playerId);
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!currentTeamId || !removeConfirmPlayer) return;
+    await removePlayerMutation({ variables: { playerId: removeConfirmPlayer, teamId: currentTeamId } });
+    setRemoveConfirmPlayer(null);
   };
 
   if (!user) {
@@ -190,6 +200,27 @@ function TeamManagement() {
           </Typography>
         </Paper>
       )}
+
+      <Dialog
+        open={!!removeConfirmPlayer}
+        onClose={() => setRemoveConfirmPlayer(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Remove Player from Roster?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This player will be removed from the active roster and from any draft lineups.
+            Published lineups will preserve the player's data for historical accuracy.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRemoveConfirmPlayer(null)}>Cancel</Button>
+          <Button onClick={handleConfirmRemove} color="error" variant="contained">
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={importDialogOpen}

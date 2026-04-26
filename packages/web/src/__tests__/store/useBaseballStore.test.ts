@@ -252,12 +252,44 @@ describe('useBaseballStore', () => {
   });
 
   describe('removePlayer', () => {
-    it('removes player from all innings, batting order, and unavailable list', () => {
+    it('removes player from all innings, batting order, and unavailable list for drafts', () => {
       seedPlayers();
+      useBaseballStore.setState({ currentLineupStatus: 'draft' });
       useBaseballStore.getState().assignPosition('pitcher', 'p1');
       useBaseballStore.getState().addToBattingOrder('p1');
       useBaseballStore.getState().togglePlayerAvailability('p1');
       useBaseballStore.getState().togglePlayerAvailability('p1');
+
+      useBaseballStore.getState().removePlayer('p1');
+      const state = useBaseballStore.getState();
+
+      expect(state.players.find((p) => p.id === 'p1')).toBeUndefined();
+      expect(state.innings[0].positions.pitcher).toBeUndefined();
+      expect(state.battingOrder).not.toContain('p1');
+    });
+
+    it('preserves batting order and innings when lineup is published', () => {
+      seedPlayers();
+      useBaseballStore.setState({
+        currentLineupId: 'lineup-1',
+        currentLineupStatus: 'published',
+        battingOrder: ['p1', 'p2', 'p3'],
+      });
+      useBaseballStore.getState().assignPosition('pitcher', 'p1');
+      useBaseballStore.getState().assignPosition('catcher', 'p2');
+
+      useBaseballStore.getState().removePlayer('p1');
+      const state = useBaseballStore.getState();
+
+      expect(state.players.find((p) => p.id === 'p1')).toBeUndefined();
+      expect(state.battingOrder).toContain('p1');
+      expect(state.innings[0].positions.pitcher).toBe('p1');
+    });
+
+    it('still scrubs lineup data when no lineup is loaded (unsaved)', () => {
+      seedPlayers();
+      useBaseballStore.getState().assignPosition('pitcher', 'p1');
+      useBaseballStore.getState().addToBattingOrder('p1');
 
       useBaseballStore.getState().removePlayer('p1');
       const state = useBaseballStore.getState();
@@ -386,6 +418,87 @@ describe('useBaseballStore', () => {
 
       const benched = useBaseballStore.getState().getBenchedPlayers(0);
       expect(benched.map((p) => p.id)).toEqual(['p1', 'p2']);
+    });
+  });
+
+  describe('allTeamPlayers', () => {
+    it('stores full roster including removed players', () => {
+      useBaseballStore.getState().loadAllTeamPlayers([
+        { id: 'p1', name: 'Alice', createdBy: 'u1', createdAt: '', updatedAt: '', removedAt: null },
+        { id: 'p2', name: 'Bob', createdBy: 'u1', createdAt: '', updatedAt: '', removedAt: '2026-04-01T00:00:00Z' },
+      ]);
+
+      const state = useBaseballStore.getState();
+      expect(state.allTeamPlayers).toHaveLength(2);
+      expect(state.allTeamPlayers.find((p) => p.id === 'p2')?.removedAt).not.toBeNull();
+    });
+  });
+
+  describe('loadLineup with removed players', () => {
+    it('filters removed players from draft lineups', () => {
+      seedPlayers();
+      useBaseballStore.getState().loadAllTeamPlayers([
+        { id: 'p1', name: 'Alice', createdBy: 'u1', createdAt: '', updatedAt: '', removedAt: null },
+        { id: 'p2', name: 'Bob', createdBy: 'u1', createdAt: '', updatedAt: '', removedAt: null },
+        { id: 'p3', name: 'Charlie', createdBy: 'u1', createdAt: '', updatedAt: '', removedAt: '2026-04-01T00:00:00Z' },
+      ]);
+
+      const lineup: Lineup = {
+        id: 'lineup-draft',
+        teamId: 'team-1',
+        gameContext: { dateTime: null, opponent: null, location: null, side: null, notes: null },
+        availablePlayerIds: ['p1', 'p2', 'p3'],
+        battingOrder: ['p1', 'p2', 'p3'],
+        innings: [
+          {
+            positions: { pitcher: 'p1', catcher: 'p3' },
+            fieldConfig: { 'center-field': true, 'center-left-field': false, 'center-right-field': false },
+          },
+        ],
+        status: 'draft',
+        createdBy: 'u1',
+        createdAt: '',
+        updatedAt: '',
+      };
+
+      useBaseballStore.getState().loadLineup(lineup);
+      const state = useBaseballStore.getState();
+
+      expect(state.battingOrder).not.toContain('p3');
+      expect(state.innings[0].positions.catcher).toBeUndefined();
+    });
+
+    it('preserves removed players in published lineups', () => {
+      seedPlayers();
+      useBaseballStore.getState().loadAllTeamPlayers([
+        { id: 'p1', name: 'Alice', createdBy: 'u1', createdAt: '', updatedAt: '', removedAt: null },
+        { id: 'p2', name: 'Bob', createdBy: 'u1', createdAt: '', updatedAt: '', removedAt: null },
+        { id: 'p3', name: 'Charlie', createdBy: 'u1', createdAt: '', updatedAt: '', removedAt: '2026-04-01T00:00:00Z' },
+      ]);
+
+      const lineup: Lineup = {
+        id: 'lineup-pub',
+        teamId: 'team-1',
+        gameContext: { dateTime: null, opponent: null, location: null, side: null, notes: null },
+        availablePlayerIds: ['p1', 'p2', 'p3'],
+        battingOrder: ['p1', 'p2', 'p3'],
+        innings: [
+          {
+            positions: { pitcher: 'p1', catcher: 'p3' },
+            fieldConfig: { 'center-field': true, 'center-left-field': false, 'center-right-field': false },
+          },
+        ],
+        status: 'published',
+        createdBy: 'u1',
+        createdAt: '',
+        updatedAt: '',
+      };
+
+      useBaseballStore.getState().loadLineup(lineup);
+      const state = useBaseballStore.getState();
+
+      expect(state.battingOrder).toContain('p3');
+      expect(state.innings[0].positions.catcher).toBe('p3');
     });
   });
 

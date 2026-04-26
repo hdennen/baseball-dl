@@ -151,4 +151,38 @@ describe('player boundary', () => {
       expect(calls[0].params).toEqual(['p1', 't1', 'user-1']);
     });
   });
+
+  describe('teamPlayersFull', () => {
+    it('calls get_team_players_full and returns removedAt field', async () => {
+      const mock = getMockPool();
+      const removedDate = new Date('2026-04-01T00:00:00.000Z');
+      mock.onQuery('get_team_players_full', [
+        teamPlayerRow({ out_player_id: 'p1', out_name: 'Alice', out_removed_at: null }),
+        teamPlayerRow({ out_player_id: 'p2', out_name: 'Bob', out_removed_at: removedDate }),
+      ]);
+
+      const result = await execute(
+        `query FullRoster($teamId: ID!) {
+          teamPlayersFull(teamId: $teamId) {
+            id name number rosterEntryId removedAt
+          }
+        }`,
+        { teamId: 'team-1' },
+        'user-1',
+      );
+
+      expect(result.errors).toBeUndefined();
+      expect(result.data?.teamPlayersFull).toHaveLength(2);
+
+      const alice = result.data?.teamPlayersFull.find((p: { id: string }) => p.id === 'p1');
+      const bob = result.data?.teamPlayersFull.find((p: { id: string }) => p.id === 'p2');
+      expect(alice.removedAt).toBeNull();
+      expect(bob.removedAt).toBeDefined();
+      expect(bob.removedAt).not.toBeNull();
+
+      const calls = mock.getCalls('get_team_players_full');
+      expect(calls).toHaveLength(1);
+      expect(calls[0].params).toEqual(['team-1', 'user-1']);
+    });
+  });
 });

@@ -102,6 +102,7 @@ export const typeDefs = gql`
     name: String!
     number: Int
     rosterEntryId: ID!
+    removedAt: String
     createdBy: ID!
     createdAt: String!
     updatedAt: String!
@@ -192,6 +193,7 @@ export const typeDefs = gql`
     myTeams: [Team!]!
     team(id: ID!): Team
     teamPlayers(teamId: ID!): [TeamPlayer!]!
+    teamPlayersFull(teamId: ID!): [TeamPlayer!]!
     teamLineups(teamId: ID!): [Lineup!]!
     lineup(id: ID!): Lineup
   }

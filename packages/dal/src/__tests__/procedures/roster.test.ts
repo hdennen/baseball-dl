@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import {
   setupDB, teardownDB, resetDB,
-  callProcOne, callProc, createTestUser, createTestTeam,
+  callProcOne, callProc, createTestUser, createTestTeam, getPool,
 } from '../helpers.js';
 
 beforeAll(setupDB);
@@ -69,6 +69,109 @@ describe('remove_player_from_team', () => {
         userId,
       ]),
     ).rejects.toThrow(/not found/i);
+  });
+
+  it('soft-deletes: roster_entry row still exists with removed_at set', async () => {
+    const userId = await createTestUser();
+    const teamId = await createTestTeam(userId);
+    const player = await callProcOne<{ out_player_id: string; out_roster_entry_id: string }>(
+      'create_player_on_team',
+      [teamId, 'Alice', null, userId],
+    );
+
+    await callProcOne('remove_player_from_team', [player.out_player_id, teamId, userId]);
+
+    const { rows } = await getPool().query(
+      'SELECT removed_at FROM roster_entries WHERE id = $1',
+      [player.out_roster_entry_id],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].removed_at).not.toBeNull();
+  });
+
+  it('does not affect lineup JSONB when player is removed', async () => {
+    const userId = await createTestUser();
+    const teamId = await createTestTeam(userId);
+    const player = await callProcOne<{ out_player_id: string }>(
+      'create_player_on_team',
+      [teamId, 'Alice', null, userId],
+    );
+
+    const lineup = await callProcOne<{ id: string }>(
+      'save_lineup',
+      [
+        null, teamId, userId,
+        JSON.stringify({ opponent: 'Mets' }),
+        JSON.stringify([player.out_player_id]),
+        JSON.stringify([player.out_player_id]),
+        JSON.stringify([{ positions: { pitcher: player.out_player_id }, fieldConfig: {} }]),
+        'published',
+      ],
+    );
+
+    await callProcOne('remove_player_from_team', [player.out_player_id, teamId, userId]);
+
+    const after = await callProcOne<{
+      available_player_ids: string[];
+      batting_order: string[];
+      innings: Array<{ positions: Record<string, string> }>;
+    }>('get_lineup', [lineup.id, userId]);
+
+    expect(after.available_player_ids).toContain(player.out_player_id);
+    expect(after.batting_order).toContain(player.out_player_id);
+    expect(after.innings[0].positions.pitcher).toBe(player.out_player_id);
+  });
+});
+
+describe('get_team_players_full', () => {
+  it('returns active and removed players with removed_at field', async () => {
+    const userId = await createTestUser();
+    const teamId = await createTestTeam(userId);
+
+    await callProcOne('create_player_on_team', [teamId, 'Alice', 1, userId]);
+    const bob = await callProcOne<{ out_player_id: string }>(
+      'create_player_on_team',
+      [teamId, 'Bob', 2, userId],
+    );
+
+    await callProcOne('remove_player_from_team', [bob.out_player_id, teamId, userId]);
+
+    const all = await callProc<{ out_name: string; out_removed_at: string | null }>(
+      'get_team_players_full',
+      [teamId, userId],
+    );
+
+    expect(all).toHaveLength(2);
+    const alice = all.find((p) => p.out_name === 'Alice');
+    const bobRow = all.find((p) => p.out_name === 'Bob');
+    expect(alice!.out_removed_at).toBeNull();
+    expect(bobRow!.out_removed_at).not.toBeNull();
+  });
+});
+
+describe('restore soft-deleted player', () => {
+  it('re-adding a soft-deleted player restores the roster entry', async () => {
+    const userId = await createTestUser();
+    const teamId = await createTestTeam(userId);
+    const player = await callProcOne<{ out_player_id: string }>(
+      'create_player_on_team',
+      [teamId, 'Alice', 5, userId],
+    );
+
+    await callProcOne('remove_player_from_team', [player.out_player_id, teamId, userId]);
+
+    const players = await callProc('get_team_players', [teamId, userId]);
+    expect(players).toHaveLength(0);
+
+    await callProcOne('add_player_to_team', [player.out_player_id, teamId, 9, userId]);
+
+    const restored = await callProc<{ out_name: string; out_number: number }>(
+      'get_team_players',
+      [teamId, userId],
+    );
+    expect(restored).toHaveLength(1);
+    expect(restored[0].out_name).toBe('Alice');
+    expect(restored[0].out_number).toBe(9);
   });
 });
 

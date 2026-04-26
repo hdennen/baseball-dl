@@ -16,11 +16,11 @@ import BoxScoreView from './print-layouts/BoxScoreView';
 type LayoutType = 'field' | 'batting' | 'position' | 'boxscore';
 
 function InningsSummary() {
-  const { innings, players, getBenchedPlayers, getBattingOrderWithPlayers, gameContext } = useBaseballStore();
+  const { innings, players, getBenchedPlayers, getBattingOrderWithPlayers, getPlayerById, gameContext } = useBaseballStore();
   const [layoutType, setLayoutType] = useState<LayoutType>('field');
 
   const getPlayerName = (playerId: string): string => {
-    const player = players.find((p) => p.id === playerId);
+    const player = getPlayerById(playerId);
     return player ? player.name : '';
   };
 

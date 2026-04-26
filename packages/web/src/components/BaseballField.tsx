@@ -156,6 +156,7 @@ function BaseballField() {
     randomlyAssignPlayers, 
     fillRemainingPositions, 
     getActivePositions,
+    getPlayerById,
     showBenchIndicators,
     toggleBenchIndicators,
     wasPlayerBenchedPreviously,
@@ -171,7 +172,8 @@ function BaseballField() {
 
   const getPlayerForPosition = (position: string): Player | undefined => {
     const playerId = currentInning.positions[position];
-    return players.find((p) => p.id === playerId);
+    if (!playerId) return undefined;
+    return getPlayerById(playerId);
   };
 
   const { setNodeRef: setBenchRef, isOver: isBenchOver } = useDroppable({

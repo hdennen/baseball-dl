@@ -1,19 +1,28 @@
 import { useEffect } from 'react';
 import { useQuery } from '@apollo/client/react';
-import { TEAM_PLAYERS } from '../graphql/operations';
+import { TEAM_PLAYERS, TEAM_PLAYERS_FULL } from '../graphql/operations';
 import useBaseballStore from '../store/useBaseballStore';
 import type { TeamPlayer } from '@baseball-dl/shared';
 
 /**
  * Syncs a team's roster from the API into the Zustand store.
- * When currentTeamId is set, fetches the roster and calls loadTeamPlayers.
- * Returns the query result for use by the consuming component.
+ * Fetches both the active roster (for display) and the full roster
+ * including removed players (for lineup rendering).
  */
 export function useTeamSync() {
-  const { currentTeamId, loadTeamPlayers } = useBaseballStore();
+  const { currentTeamId, loadTeamPlayers, loadAllTeamPlayers } = useBaseballStore();
 
   const { data, loading, error, refetch } = useQuery<{ teamPlayers: TeamPlayer[] }>(
     TEAM_PLAYERS,
+    {
+      variables: { teamId: currentTeamId },
+      skip: !currentTeamId,
+      fetchPolicy: 'cache-and-network',
+    }
+  );
+
+  const { data: fullData } = useQuery<{ teamPlayersFull: TeamPlayer[] }>(
+    TEAM_PLAYERS_FULL,
     {
       variables: { teamId: currentTeamId },
       skip: !currentTeamId,
@@ -33,6 +42,12 @@ export function useTeamSync() {
       loadTeamPlayers(players);
     }
   }, [data?.teamPlayers, loadTeamPlayers]);
+
+  useEffect(() => {
+    if (fullData?.teamPlayersFull) {
+      loadAllTeamPlayers(fullData.teamPlayersFull);
+    }
+  }, [fullData?.teamPlayersFull, loadAllTeamPlayers]);
 
   return { loading, error, refetch };
 }

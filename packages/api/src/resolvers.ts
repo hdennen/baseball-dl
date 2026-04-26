@@ -49,6 +49,11 @@ export const resolvers = {
       return ctx.dal.getTeamPlayers(args.teamId, userId);
     },
 
+    teamPlayersFull: async (_: unknown, args: { teamId: string }, ctx: ApiContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.dal.getTeamPlayersFull(args.teamId, userId);
+    },
+
     teamLineups: async (_: unknown, args: { teamId: string }, ctx: ApiContext) => {
       const userId = requireAuth(ctx);
       return ctx.dal.getTeamLineups(args.teamId, userId);

@@ -1,6 +1,6 @@
-import type { Player, FieldConfig, Inning, BattingOrderEntry, Position, LineupStatus, Lineup } from '@baseball-dl/shared';
+import type { Player, FieldConfig, Inning, BattingOrderEntry, Position, LineupStatus, Lineup, TeamPlayer } from '@baseball-dl/shared';
 
-export type { Player, FieldConfig, Inning, GameContext, BattingOrderEntry, Position, PositionAssignment, LineupStatus, Lineup } from '@baseball-dl/shared';
+export type { Player, FieldConfig, Inning, GameContext, BattingOrderEntry, Position, PositionAssignment, LineupStatus, Lineup, TeamPlayer } from '@baseball-dl/shared';
 
 /**
  * Web-specific GameContext with separate date/time fields.
@@ -18,6 +18,7 @@ export interface WebGameContext {
 
 export interface BaseballStore {
   players: Player[];
+  allTeamPlayers: TeamPlayer[];
   battingOrder: string[];
   unavailablePlayers: string[];
   innings: Inning[];
@@ -38,6 +39,7 @@ export interface BaseballStore {
   removePlayer: (playerId: string) => void;
   setCurrentTeam: (teamId: string | null, teamName?: string | null) => void;
   loadTeamPlayers: (players: Player[]) => void;
+  loadAllTeamPlayers: (players: TeamPlayer[]) => void;
   migrateToTeam: (teamId: string, idMap: Record<string, string>) => void;
 
   assignPosition: (position: string, playerId: string | null) => void;
@@ -60,6 +62,8 @@ export interface BaseballStore {
   getAvailablePlayers: () => Player[];
   getUnavailablePlayerObjects: () => Player[];
 
+  getPlayerById: (playerId: string) => Player | undefined;
+  isPlayerRemoved: (playerId: string) => boolean;
   getBenchedPlayers: (inningIndex: number) => Player[];
   wasPlayerBenchedPreviously: (playerId: string) => boolean;
   getPositionLabel: (position: string) => string;
