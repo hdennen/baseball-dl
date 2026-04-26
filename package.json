@@ -10,6 +10,9 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d",
-    "test:api": "npm run test --workspace=@baseball-dl/api"
+    "test": "npm run test --workspaces --if-present",
+    "test:api": "npm run test --workspace=@baseball-dl/api",
+    "test:web": "npm run test --workspace=@baseball-dl/web",
+    "test:dal": "npm run test --workspace=@baseball-dl/dal"
   }
 }
