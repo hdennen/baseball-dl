@@ -360,9 +360,19 @@ const useBaseballStore = create<BaseballStore>()(
     if (!inning) return [];
 
     const assignedPlayerIds = new Set(Object.values(inning.positions));
-    return state.players.filter(
+
+    const basePlayers = state.players.filter(
       (player) => !assignedPlayerIds.has(player.id) && !state.unavailablePlayers.includes(player.id)
     );
+
+    if (!state.isPublished) return basePlayers;
+
+    const activeIds = new Set(state.players.map(p => p.id));
+    const removedOnBench = state.allTeamPlayers
+      .filter(tp => tp.removedAt && !assignedPlayerIds.has(tp.id) && !activeIds.has(tp.id))
+      .map(tp => ({ id: tp.id, name: tp.name, createdBy: tp.createdBy, createdAt: tp.createdAt, updatedAt: tp.updatedAt }));
+
+    return [...basePlayers, ...removedOnBench];
   },
 
   wasPlayerBenchedPreviously: (playerId: string): boolean => {
